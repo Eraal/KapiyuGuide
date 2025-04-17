@@ -6,35 +6,36 @@
 <!-- Hero Section with Background Image -->
 <div class="relative">
   <div
-    class="bg-cover bg-center h-64 md:h-72"
+    class="bg-cover bg-center h-72 md:h-80"
     style="background-image: url('{{ url_for('static', filename='images/backgroundlanding.png') }}');"
   >
     <div class="absolute inset-0 bg-opacity-70"></div>
+    
+    <!-- School Logo - Repositioned for mobile -->
+    <div class="relative container mx-auto px-4 pt-5 text-center">
+      <img
+        src="{{ url_for('static', filename='images/schoollogo.png') }}"
+        alt="Polytechnic University Logo"
+        class="w-24 md:w-64 mx-auto md:absolute md:top-5 md:right-5 md:mx-0"
+      />
+    </div>
+    
     <div
-      class="relative container mx-auto px-4 h-full flex flex-col justify-center"
+      class="relative container mx-auto px-4 h-full flex flex-col justify-center items-center md:items-start mt-2 md:mt-0"
     >
-      <div class="max-w-3xl text-white">
-        <h1 class="text-5xl sm:text-6xl md:text-7xl font-italic font-bold mb-2 text-stroke">
+      <div class="text-center md:text-left text-white max-w-3xl">
+        <h1 class="text-4xl sm:text-5xl md:text-6xl font-italic font-bold mb-2 text-stroke">
           KapiyuGuide
         </h1>
-        <p class="text-xl md:text-2xl mb-2 md:mb-4 font-bold">
+        <p class="text-lg md:text-xl mb-2 md:mb-4 font-bold">
           "Manage Your Campus Inquiries with Ease"
         </p>
-        <p class="text-base md:text-lg mb-2">
+        <p class="text-sm md:text-base mb-2">
           Easily reach the right office for your concern
           <br>—anytime, anywhere
         </p>
       </div>
     </div>
-  </div>
-
-  <!-- School Logo -->
-  <div class="absolute top-10 right-5 sm:right-10 md:right-20 lg:right-32">
-    <img
-      src="{{ url_for('static', filename='images/schoollogo.png') }}"
-      alt="Polytechnic University Logo"
-      class="w-24 sm:w-32 md:w-40"
-    />
   </div>
 </div>
 
@@ -53,7 +54,7 @@
       
       <!-- Office of the Registrar -->
       <div class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200 flex flex-col">
-        <div class="bg-gradient-to-b from-blue-700 to-blue-900 text-white font-bold py-3 px-4 text-center text-2xl">
+        <div class="bg-gradient-to-b from-blue-700 to-blue-900 text-white font-bold py-3 px-4 text-center text-xl md:text-2xl">
           Office of the Registrar
         </div>
         <div class="p-4 md:p-6 flex flex-col flex-grow">
@@ -72,7 +73,7 @@
       
       <!-- Office of Student Affairs and Services (OSAS) -->
       <div class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
-        <div class="bg-gradient-to-b from-green-700 to-green-900 text-white font-bold py-3 px-4 text-center text-2xl">
+        <div class="bg-gradient-to-b from-green-700 to-green-900 text-white font-bold py-3 px-4 text-center text-xl md:text-2xl">
           Office of Student Affairs and Services (OSAS)
         </div>
         <div class="p-4 md:p-6 flex flex-col flex-grow">
@@ -90,7 +91,7 @@
       
       <!-- Scholarship and Financial Aid -->
       <div class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
-        <div class="bg-gradient-to-b from-yellow-600 to-yellow-800 text-white font-bold py-3 px-4 text-center text-2xl">
+        <div class="bg-gradient-to-b from-yellow-600 to-yellow-800 text-white font-bold py-3 px-4 text-center text-xl md:text-2xl">
           Scholarship and Financial Assistance Office
         </div>
         <div class="p-4 md:p-6 flex flex-col flex-grow">
@@ -108,7 +109,7 @@
       
       <!-- Guidance and Counseling Office -->
       <div class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
-        <div class="bg-gradient-to-b from-pink-700 to-pink-900 text-white font-bold py-3 px-4 text-center text-2xl">
+        <div class="bg-gradient-to-b from-pink-700 to-pink-900 text-white font-bold py-3 px-4 text-center text-xl md:text-2xl">
           Guidance and Counseling Office
         </div>
         <div class="p-4 md:p-6 flex flex-col flex-grow">
@@ -126,7 +127,7 @@
       
       <!-- Business Affairs Office (BAO) -->
       <div class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
-        <div class="bg-gradient-to-b from-orange-700 to-orange-900 text-white font-bold py-3 px-4 text-center text-2xl">
+        <div class="bg-gradient-to-b from-orange-700 to-orange-900 text-white font-bold py-3 px-4 text-center text-xl md:text-2xl">
           Business Affairs Office (BAO)
         </div>
         <div class="p-4 md:p-6 flex flex-col flex-grow">
@@ -144,7 +145,7 @@
       
       <!-- Gender and Development (GAD) Office -->
       <div class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200 flex flex-col">
-        <div class="bg-gradient-to-b from-purple-700 to-purple-900 text-white font-bold py-3 px-4 text-center text-2xl">
+        <div class="bg-gradient-to-b from-purple-700 to-purple-900 text-white font-bold py-3 px-4 text-center text-xl md:text-2xl">
           Gender and Development Office (GAD)
         </div>
         <div class="p-4 md:p-6 flex flex-col flex-grow">
@@ -162,7 +163,7 @@
       
       <!-- ICT Services (ICTS) Office -->
       <div class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200 flex flex-col">
-        <div class="bg-gradient-to-b from-teal-700 to-teal-900 text-white font-bold py-3 px-4 text-center text-2xl">
+        <div class="bg-gradient-to-b from-teal-700 to-teal-900 text-white font-bold py-3 px-4 text-center text-xl md:text-2xl">
           ICT Services (ICTS) Office
         </div>
         <div class="p-4 md:p-6 flex flex-col flex-grow">
@@ -180,7 +181,7 @@
       
       <!-- Office of the Cashier -->
       <div class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
-        <div class="bg-gradient-to-b from-indigo-700 to-teal-900 text-white font-bold py-3 px-4 text-center text-2xl">
+        <div class="bg-gradient-to-b from-indigo-700 to-teal-900 text-white font-bold py-3 px-4 text-center text-xl md:text-2xl">
           Office of the Cashier
         </div>
         <div class="p-4 md:p-6 flex flex-col flex-grow">
@@ -198,7 +199,7 @@
       
       <!-- University Library -->
       <div class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
-        <div class="bg-gradient-to-b from-sky-700 to-sky-900 text-white font-bold py-3 px-4 text-center text-2xl">
+        <div class="bg-gradient-to-b from-sky-700 to-sky-900 text-white font-bold py-3 px-4 text-center text-xl md:text-2xl">
           University Library
         </div>
         <div class="p-4 md:p-6 flex flex-col flex-grow">
@@ -216,7 +217,7 @@
       
       <!-- School Clinic -->
       <div class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
-        <div class="bg-gradient-to-b from-red-700 to-red-900 text-white font-bold py-3 px-4 text-center text-2xl">
+        <div class="bg-gradient-to-b from-red-700 to-red-900 text-white font-bold py-3 px-4 text-center text-xl md:text-2xl">
           School Clinic
         </div>
         <div class="p-4 md:p-6 flex flex-col flex-grow">
@@ -263,7 +264,7 @@
     contactButtons.forEach(button => {
       button.addEventListener('click', function(e) {
         // This can be expanded later for actual contact functionality
-        const officeName = this.closest('.bg-white.rounded-lg').querySelector('.bg-blue-800').textContent.trim();
+        const officeName = this.closest('.bg-white.rounded-lg').querySelector('[class*="from-"]').textContent.trim();
         console.log(`Contact requested for: ${officeName}`);
       });
     });

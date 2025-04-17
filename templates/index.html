@@ -14,6 +14,17 @@
             -webkit-text-stroke: 0.5px white;
         }
     }
+
+    /* Added styles for mobile responsiveness */
+    @media (max-width: 768px) {
+        .hero-content-mobile {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding-top: 2rem;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -23,7 +34,9 @@
     <div class="bg-cover bg-center h-screen"
         style="background-image: url('{{ url_for('static', filename='images/backgroundlanding.png') }}');">
         <div class="absolute inset-0 bg-opacity-70"></div>
-        <div class="relative container mx-auto px-4 h-full flex flex-col justify-center">
+        
+        <!-- Desktop Layout (logo on right) -->
+        <div class="relative container mx-auto px-4 h-full hidden md:flex flex-col justify-center">
             <div class="max-w-lg text-white">
                 <h1 class="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-italic font-bold mb-2 md:mb-4 text-stroke">
                     KapiyuGuide
@@ -40,10 +53,36 @@
                 </a>
             </div>
         </div>
+
+        <!-- Mobile Layout (vertically aligned with logo on top) -->
+        <div class="relative container mx-auto px-4 h-full flex md:hidden hero-content-mobile">
+            <!-- Logo first on mobile -->
+            <div class="mb-6 mt-20">
+                <img src="{{ url_for('static', filename='images/schoollogo.png') }}" alt="Polytechnic University Logo"
+                    class="w-48 mx-auto" />
+            </div>
+            
+            <!-- Text content centered below logo -->
+            <div class="text-white text-center">
+                <h1 class="text-4xl font-italic font-bold mb-2 text-stroke">
+                    KapiyuGuide
+                </h1>
+                <p class="text-lg mb-3 font-bold">
+                    "Manage Your Campus Inquiries with Ease"
+                </p>
+                <p class="text-base mb-6">
+                    Easily reach the right office for your concern - anytime, anywhere
+                </p>
+                <a href="#about"
+                    class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-3xl transition shadow">
+                    Learn More
+                </a>
+            </div>
+        </div>
     </div>
 
-    <!-- School Logo -->
-    <div class="absolute top-24 right-10 sm:right-10 md:right-20 lg:right-32">
+    <!-- School Logo (Only visible on desktop) -->
+    <div class="absolute top-24 right-10 sm:right-10 md:right-20 lg:right-32 hidden md:block">
         <img src="{{ url_for('static', filename='images/schoollogo.png') }}" alt="Polytechnic University Logo"
             class="w-64 sm:w-72 md:w-80 lg:w-96" />
     </div>
@@ -52,7 +91,7 @@
 <!-- What is KapiyuGuide Section -->
 <section id="about" class="py-8 md:py-12">
     <div class="container mx-auto px-4">
-        <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
+        <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 text-center md:text-left">
             What is <span class="text-blue-600">KapiyuGuide</span>?
         </h2>
         <div class="flex flex-col md:flex-row gap-6 md:gap-10 items-center">
@@ -76,8 +115,8 @@
 <!-- How does KapiyuGuide works Section -->
 <section class="py-8 md:py-12 bg-gray-100">
     <div class="container mx-auto px-4">
-        <h2 class="text-xl sm:text-2xl md:text-3xl font-bold mb-6 md:mb-8">
-            How does <span class="text-blue-600">KapiyuGuide</span> works?
+        <h2 class="text-xl sm:text-2xl md:text-3xl font-bold mb-6 md:mb-8 text-center md:text-left">
+            How does <span class="text-blue-600">KapiyuGuide</span> work?
         </h2>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
@@ -88,7 +127,7 @@
                         class="h-32 w-32 object-contain" />
                 </div>
                 <h3 class="font-bold text-lg md:text-xl lg:text-2xl mb-2 text-center">Real-Time Inquiry Responses</h3>
-                <p class="text-gray-600 text-sm md:text-base">
+                <p class="text-gray-600 text-sm md:text-base text-justify">
                     Stay informed with instant updates on your inquiries' status as they are processed.
                 </p>
             </div>
@@ -100,7 +139,7 @@
                         class="h-32 w-32 object-contain" />
                 </div>
                 <h3 class="font-bold text-lg md:text-xl lg:text-2xl mb-2 text-center">Office-specific Responses</h3>
-                <p class="text-gray-600 text-sm md:text-base">
+                <p class="text-gray-600 text-sm md:text-base text-justify">
                     Get responses tailored to your inquiry from the specific office you've contacted, ensuring quick and accurate support.
                 </p>
             </div>
@@ -112,22 +151,22 @@
                         class="h-32 w-32 object-contain" />
                 </div>
                 <h3 class="font-bold text-lg md:text-xl lg:text-2xl mb-2 text-center">Secure Counseling</h3>
-                <p class="text-gray-600 text-sm md:text-base">
+                <p class="text-gray-600 text-sm md:text-base text-justify">
                     Request confidential counseling or schedule a secure video session with offices like Guidance and Counseling or GAD.
                 </p>
             </div>
 
             <!-- Feature 4 -->
             <div class="bg-white p-4 md:p-6 rounded-lg shadow-md">
-    <div class="bg-blue-100 rounded-lg p-4 mb-4 flex justify-center items-center" style="height: 160px;">
-        <img src="{{ url_for('static', filename='images/announcement.png') }}" alt="Announcements"
-            class="h-32 w-32 object-contain" />
-    </div>
-    <h3 class="font-bold text-lg md:text-xl lg:text-2xl mb-2 text-center">Announcements</h3>
-    <p class="text-gray-600 text-sm md:text-base">
-        Catch up on important news, updates, and announcements from various university units.
-    </p>
-</div>
+                <div class="bg-blue-100 rounded-lg p-4 mb-4 flex justify-center items-center" style="height: 160px;">
+                    <img src="{{ url_for('static', filename='images/announcement.png') }}" alt="Announcements"
+                        class="h-32 w-32 object-contain" />
+                </div>
+                <h3 class="font-bold text-lg md:text-xl lg:text-2xl mb-2 text-center">Announcements</h3>
+                <p class="text-gray-600 text-sm md:text-base text-justify">
+                    Catch up on important news, updates, and announcements from various university units.
+                </p>
+            </div>
         </div>
     </div>
 </section>

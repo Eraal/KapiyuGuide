@@ -6,42 +6,43 @@
 <!-- Hero Section with Background Image -->
 <div class="relative">
   <div
-    class="bg-cover bg-center h-64 md:h-72"
+    class="bg-cover bg-center h-72 md:h-80"
     style="background-image: url('{{ url_for('static', filename='images/backgroundlanding.png') }}');"
   >
     <div class="absolute inset-0 bg-opacity-70"></div>
+    
+    <!-- School Logo - Repositioned for mobile -->
+    <div class="relative container mx-auto px-4 pt-5 text-center">
+      <img
+        src="{{ url_for('static', filename='images/schoollogo.png') }}"
+        alt="Polytechnic University Logo"
+        class="w-24 md:w-64 mx-auto md:absolute md:top-5 md:right-5 md:mx-0"
+      />
+    </div>
+    
     <div
-      class="relative container mx-auto px-4 h-full flex flex-col justify-center"
+      class="relative container mx-auto px-4 h-full flex flex-col justify-center items-center md:items-start mt-2 md:mt-0"
     >
-      <div class="max-w-3xl text-white">
-        <h1 class="text-5xl sm:text-6xl md:text-7xl font-italic font-bold mb-2 text-stroke">
+      <div class="text-center md:text-left text-white max-w-3xl">
+        <h1 class="text-4xl sm:text-5xl md:text-6xl font-italic font-bold mb-2 text-stroke">
           KapiyuGuide
         </h1>
-        <p class="text-xl md:text-2xl mb-2 md:mb-4 font-bold">
+        <p class="text-lg md:text-xl mb-2 md:mb-4 font-bold">
           "Manage Your Campus Inquiries with Ease"
         </p>
-        <p class="text-base md:text-lg mb-2">
+        <p class="text-sm md:text-base mb-2">
           Easily reach the right office for your concern
           <br>—anytime, anywhere.
         </p>
       </div>
     </div>
   </div>
-
-  <!-- School Logo -->
-  <div class="absolute top-10 right-5 sm:right-10 md:right-20 lg:right-32">
-    <img
-      src="{{ url_for('static', filename='images/schoollogo.png') }}"
-      alt="Polytechnic University Logo"
-      class="w-24 sm:w-32 md:w-40"
-    />
-  </div>
 </div>
 
 <!-- Security & Privacy Section -->
 <section class="bg-blue-800 text-white py-8 md:py-12">
   <div class="container mx-auto px-4">
-    <h2 class="text-3xl sm:text-4xl font-bold text-center mb-2">Security & Privacy</h2>
+    <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-2">Security & Privacy</h2>
     <p class="text-sm md:text-base text-center max-w-3xl mx-auto mb-8">
       At LSPU-SC, we prioritize the security and privacy of your personal, academic, and
       inquiry-related information. The system is built with state-of-the-art security
@@ -50,12 +51,12 @@
     </p>
 
     <!-- Security Features Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
       
       <!-- Feature 1 -->
       <div class="bg-white text-gray-800 rounded-lg shadow-md overflow-hidden">
         <div class="p-4 md:p-6">
-          <h3 class="font-bold text-xl text-blue-800 mb-3 text-center">Confidential Communication</h3>
+          <h3 class="font-bold text-lg md:text-xl text-blue-800 mb-3 text-center">Confidential Communication</h3>
           <p class="text-sm md:text-base mb-4">
             For offices like GAD and Guidance, WebRTC-based video calls ensure secure, private communication for
             sensitive inquiries such as counseling or gender-based concerns.
@@ -66,7 +67,7 @@
       <!-- Feature 2 -->
       <div class="bg-white text-gray-800 rounded-lg shadow-md overflow-hidden">
         <div class="p-4 md:p-6">
-          <h3 class="font-bold text-xl text-blue-800 mb-3 text-center">Role-Based Access Control (RBAC)</h3>
+          <h3 class="font-bold text-lg md:text-xl text-blue-800 mb-3 text-center">Role-Based Access Control (RBAC)</h3>
           <p class="text-sm md:text-base mb-4">
             Access to data and features is restricted based on user roles. Only authorized
             personnel in each office can view or respond to specific inquiries.
@@ -77,7 +78,7 @@
       <!-- Feature 3 -->
       <div class="bg-white text-gray-800 rounded-lg shadow-md overflow-hidden">
         <div class="p-4 md:p-6">
-          <h3 class="font-bold text-xl text-blue-800 mb-3 text-center">Privacy Compliance</h3>
+          <h3 class="font-bold text-lg md:text-xl text-blue-800 mb-3 text-center">Privacy Compliance</h3>
           <p class="text-sm md:text-base mb-4">
             The system complies with data protection regulations such as the Data
             Privacy Act, ensuring that personal information is collected, stored, and
@@ -89,7 +90,7 @@
       <!-- Feature 4 -->
       <div class="bg-white text-gray-800 rounded-lg shadow-md overflow-hidden">
         <div class="p-4 md:p-6">
-          <h3 class="font-bold text-xl text-blue-800 mb-3 text-center">WebRTC</h3>
+          <h3 class="font-bold text-lg md:text-xl text-blue-800 mb-3 text-center">WebRTC</h3>
           <p class="text-sm md:text-base mb-4">
             Real-time video and audio communications via WebRTC ensure
             private and direct peer-to-peer sessions between users, minimizing the risk of
@@ -101,7 +102,7 @@
       <!-- Feature 5 -->
       <div class="bg-white text-gray-800 rounded-lg shadow-md overflow-hidden">
         <div class="p-4 md:p-6">
-          <h3 class="font-bold text-xl text-blue-800 mb-3 text-center">WebSocket</h3>
+          <h3 class="font-bold text-lg md:text-xl text-blue-800 mb-3 text-center">WebSocket</h3>
           <p class="text-sm md:text-base mb-4">
             Real-time notifications via WebSockets are encrypted to prevent unauthorized
             data interception during communication.
@@ -112,7 +113,7 @@
       <!-- Feature 6 -->
       <div class="bg-white text-gray-800 rounded-lg shadow-md overflow-hidden">
         <div class="p-4 md:p-6">
-          <h3 class="font-bold text-xl text-blue-800 mb-3 text-center">Audit Trails</h3>
+          <h3 class="font-bold text-lg md:text-xl text-blue-800 mb-3 text-center">Audit Trails</h3>
           <p class="text-sm md:text-base mb-4">
             All actions performed within the system, including inquiry submissions, responses,
             and updates, are logged for accountability and transparency.
@@ -127,32 +128,32 @@
 <!-- Additional Security Information -->
 <section class="py-8 md:py-12 bg-gray-50">
   <div class="container mx-auto px-4">
-    <h2 class="text-2xl sm:text-3xl font-bold text-blue-800 mb-6 text-center">Our Commitment to Your Security</h2>
+    <h2 class="text-xl sm:text-2xl md:text-3xl font-bold text-blue-800 mb-6 text-center">Our Commitment to Your Security</h2>
     
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-      <div class="bg-white p-6 rounded-lg shadow-md">
-        <h3 class="text-xl font-bold text-blue-800 mb-4">Data Protection Measures</h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+      <div class="bg-white p-4 md:p-6 rounded-lg shadow-md">
+        <h3 class="text-lg md:text-xl font-bold text-blue-800 mb-4">Data Protection Measures</h3>
         <ul class="space-y-2 text-gray-700">
           <li class="flex items-start">
-            <svg class="h-5 w-5 text-blue-600 mr-2 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="h-5 w-5 text-blue-600 mr-2 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
             </svg>
             <span>End-to-end encryption for all communications</span>
           </li>
           <li class="flex items-start">
-            <svg class="h-5 w-5 text-blue-600 mr-2 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="h-5 w-5 text-blue-600 mr-2 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
             </svg>
             <span>Regular security audits and vulnerability assessments</span>
           </li>
           <li class="flex items-start">
-            <svg class="h-5 w-5 text-blue-600 mr-2 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="h-5 w-5 text-blue-600 mr-2 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
             </svg>
             <span>Secure data storage with multiple layers of protection</span>
           </li>
           <li class="flex items-start">
-            <svg class="h-5 w-5 text-blue-600 mr-2 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="h-5 w-5 text-blue-600 mr-2 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
             </svg>
             <span>Automatic session timeouts after periods of inactivity</span>
@@ -160,29 +161,29 @@
         </ul>
       </div>
       
-      <div class="bg-white p-6 rounded-lg shadow-md">
-        <h3 class="text-xl font-bold text-blue-800 mb-4">User Privacy Rights</h3>
+      <div class="bg-white p-4 md:p-6 rounded-lg shadow-md">
+        <h3 class="text-lg md:text-xl font-bold text-blue-800 mb-4">User Privacy Rights</h3>
         <ul class="space-y-2 text-gray-700">
           <li class="flex items-start">
-            <svg class="h-5 w-5 text-blue-600 mr-2 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="h-5 w-5 text-blue-600 mr-2 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
             </svg>
             <span>Right to access your personal data</span>
           </li>
           <li class="flex items-start">
-            <svg class="h-5 w-5 text-blue-600 mr-2 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="h-5 w-5 text-blue-600 mr-2 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
             </svg>
             <span>Right to request data deletion</span>
           </li>
           <li class="flex items-start">
-            <svg class="h-5 w-5 text-blue-600 mr-2 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="h-5 w-5 text-blue-600 mr-2 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
             </svg>
             <span>Control over your communication preferences</span>
           </li>
           <li class="flex items-start">
-            <svg class="h-5 w-5 text-blue-600 mr-2 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="h-5 w-5 text-blue-600 mr-2 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
             </svg>
             <span>Transparent data usage policies</span>
@@ -196,12 +197,12 @@
 <!-- Contact About Security -->
 <section class="py-8 md:py-12 bg-white">
   <div class="container mx-auto px-4 text-center">
-    <h2 class="text-2xl sm:text-3xl font-bold text-blue-800 mb-4">Questions About Security?</h2>
-    <p class="text-gray-700 max-w-2xl mx-auto mb-6">
+    <h2 class="text-xl sm:text-2xl md:text-3xl font-bold text-blue-800 mb-4">Questions About Security?</h2>
+    <p class="text-sm md:text-base text-gray-700 max-w-2xl mx-auto mb-6">
       If you have any questions or concerns about how we handle your data, please don't hesitate to contact us.
       Your privacy and security are our top priorities.
     </p>
-    <a href="#" class="inline-block bg-blue-800 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-700 transition duration-200">
+    <a href="#" class="inline-block bg-blue-800 text-white px-5 py-2 md:px-6 md:py-3 rounded-lg font-bold hover:bg-blue-700 transition duration-200">
       Contact Security Team
     </a>
   </div>
