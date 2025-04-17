@@ -1,0 +1,224 @@
+{% extends 'headerbase.html' %}
+
+{% block title %}KapiyuGuide - Campus Inquiry Management System{% endblock %}
+
+{% block extra_css %}
+<style>
+    .text-stroke {
+        -webkit-text-stroke: 1px white;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    }
+    
+    @media (max-width: 640px) {
+        .text-stroke {
+            -webkit-text-stroke: 0.5px white;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="relative scroll-smooth">
+    <!-- Hero Section with Background Image -->
+    <div class="bg-cover bg-center h-screen"
+        style="background-image: url('{{ url_for('static', filename='images/backgroundlanding.png') }}');">
+        <div class="absolute inset-0 bg-opacity-70"></div>
+        <div class="relative container mx-auto px-4 h-full flex flex-col justify-center">
+            <div class="max-w-lg text-white">
+                <h1 class="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-italic font-bold mb-2 md:mb-4 text-stroke">
+                    KapiyuGuide
+                </h1>
+                <p class="text-xl sm:text-2xl mb-4 md:mb-6 font-bold">
+                    "Manage Your Campus Inquiries with Ease"
+                </p>
+                <p class="text-base sm:text-lg md:text-xl mb-6 md:mb-8">
+                    Easily reach the right office for your concern - anytime, anywhere
+                </p>
+                <a href="#about"
+                    class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 sm:py-4 md:py-6 px-6 sm:px-8 md:px-12 rounded-3xl transition shadow">
+                    Learn More
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- School Logo -->
+    <div class="absolute top-24 right-10 sm:right-10 md:right-20 lg:right-32">
+        <img src="{{ url_for('static', filename='images/schoollogo.png') }}" alt="Polytechnic University Logo"
+            class="w-64 sm:w-72 md:w-80 lg:w-96" />
+    </div>
+</div>
+
+<!-- What is KapiyuGuide Section -->
+<section id="about" class="py-8 md:py-12">
+    <div class="container mx-auto px-4">
+        <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
+            What is <span class="text-blue-600">KapiyuGuide</span>?
+        </h2>
+        <div class="flex flex-col md:flex-row gap-6 md:gap-10 items-center">
+            <div class="md:w-2/3">
+                <p class="text-gray-700 text-base sm:text-xl md:text-2xl lg:text-3xl mb-6 md:mb-20">
+                    KapiyuGuide is a campus-wide inquiry management system designed to
+                    streamline communication between students and the school offices. No
+                    more long queues or confusion—allowing students to send inquiries
+                    directly to the appropriate office, receive real-time updates, and
+                    stay informed through announcements—all in one centralized platform.
+                </p>
+            </div>
+            <div class="md:w-1/3">
+                <img src="{{ url_for('static', filename='images/whatis.png') }}" alt="Students using KapiyuGuide"
+                    class="rounded-lg shadow-md w-full" />
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How does KapiyuGuide works Section -->
+<section class="py-8 md:py-12 bg-gray-100">
+    <div class="container mx-auto px-4">
+        <h2 class="text-xl sm:text-2xl md:text-3xl font-bold mb-6 md:mb-8">
+            How does <span class="text-blue-600">KapiyuGuide</span> works?
+        </h2>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+            <!-- Feature 1 -->
+            <div class="bg-white p-4 md:p-6 rounded-lg shadow-md">
+                <div class="bg-blue-100 rounded-lg p-4 mb-4 flex justify-center items-center" style="height: 160px;">
+                    <img src="{{ url_for('static', filename='images/inquiry.png') }}" alt="Real-Time Inquiry"
+                        class="h-32 w-32 object-contain" />
+                </div>
+                <h3 class="font-bold text-lg md:text-xl lg:text-2xl mb-2 text-center">Real-Time Inquiry Responses</h3>
+                <p class="text-gray-600 text-sm md:text-base">
+                    Stay informed with instant updates on your inquiries' status as they are processed.
+                </p>
+            </div>
+
+            <!-- Feature 2 -->
+            <div class="bg-white p-4 md:p-6 rounded-lg shadow-md">
+                <div class="bg-blue-100 rounded-lg p-4 mb-4 flex justify-center items-center" style="height: 160px;">
+                    <img src="{{ url_for('static', filename='images/office.png') }}" alt="Office-specific Responses"
+                        class="h-32 w-32 object-contain" />
+                </div>
+                <h3 class="font-bold text-lg md:text-xl lg:text-2xl mb-2 text-center">Office-specific Responses</h3>
+                <p class="text-gray-600 text-sm md:text-base">
+                    Get responses tailored to your inquiry from the specific office you've contacted, ensuring quick and accurate support.
+                </p>
+            </div>
+
+            <!-- Feature 3 -->
+            <div class="bg-white p-4 md:p-6 rounded-lg shadow-md">
+                <div class="bg-blue-100 rounded-lg p-4 mb-4 flex justify-center items-center" style="height: 160px;">
+                    <img src="{{ url_for('static', filename='images/counceling.png') }}" alt="Secure Counseling"
+                        class="h-32 w-32 object-contain" />
+                </div>
+                <h3 class="font-bold text-lg md:text-xl lg:text-2xl mb-2 text-center">Secure Counseling</h3>
+                <p class="text-gray-600 text-sm md:text-base">
+                    Request confidential counseling or schedule a secure video session with offices like Guidance and Counseling or GAD.
+                </p>
+            </div>
+
+            <!-- Feature 4 -->
+            <div class="bg-white p-4 md:p-6 rounded-lg shadow-md">
+    <div class="bg-blue-100 rounded-lg p-4 mb-4 flex justify-center items-center" style="height: 160px;">
+        <img src="{{ url_for('static', filename='images/announcement.png') }}" alt="Announcements"
+            class="h-32 w-32 object-contain" />
+    </div>
+    <h3 class="font-bold text-lg md:text-xl lg:text-2xl mb-2 text-center">Announcements</h3>
+    <p class="text-gray-600 text-sm md:text-base">
+        Catch up on important news, updates, and announcements from various university units.
+    </p>
+</div>
+        </div>
+    </div>
+</section>
+
+<!-- Description Section -->
+<section class="py-8 md:py-12">
+    <div class="container mx-auto px-4">
+        <p class="text-gray-700 text-center text-sm md:text-base max-w-4xl mx-auto">
+            This platform connects students with various campus units and offices for
+            faster, more organized communication. Whether it's academic records,
+            counseling, health, or student services — send your inquiry directly to
+            the appropriate unit or office.
+        </p>
+    </div>
+</section>
+
+<!-- Contact Form Section -->
+<section class="py-8 md:py-12 bg-gray-50">
+    <div class="container mx-auto px-4 max-w-sm md:max-w-md">
+        <h3 class="text-center text-gray-700 text-lg md:text-xl mb-6">
+            Need help? Reach out to your office
+        </h3>
+
+        <form class="bg-white p-4 md:p-6 rounded-lg shadow-md">
+            <div class="mb-4">
+                <input type="text" id="name" name="name" placeholder="Name"
+                    class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500" />
+            </div>
+
+            <div class="mb-4">
+                <input type="email" id="email" name="email" placeholder="Email"
+                    class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500" />
+            </div>
+
+            <div class="mb-4">
+                <textarea id="message" name="message" rows="4" placeholder="Message"
+                    class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"></textarea>
+            </div>
+
+            <button type="submit"
+                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition">
+                SUBMIT
+            </button>
+        </form>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Smooth scrolling for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            
+            const targetId = this.getAttribute('href');
+            const targetElement = document.querySelector(targetId);
+            
+            if (targetElement) {
+                window.scrollTo({
+                    top: targetElement.offsetTop - 80, // Offset for the fixed header
+                    behavior: 'smooth'
+                });
+                
+                // Close mobile menu if open
+                const mobileMenu = document.getElementById('mobile-menu');
+                if (mobileMenu && !mobileMenu.classList.contains('hidden')) {
+                    mobileMenu.classList.add('hidden');
+                }
+            }
+        });
+    });
+    
+    // Form validation
+    const form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const message = document.getElementById('message').value;
+            
+            if (!name || !email || !message) {
+                alert('Please fill in all fields');
+                return;
+            }
+            
+            alert('Your message has been sent!');
+            form.reset();
+        });
+    }
+</script>
+{% endblock %}

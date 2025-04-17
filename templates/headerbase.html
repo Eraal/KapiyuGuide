@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}KapiyuGuide{% endblock %}</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Marcellus+SC&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="{{ url_for('static', filename='css/customs.css') }}"
+      rel="stylesheet"
+    />
+
+    <!-- Custom CSS -->
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/custom.css') }}"
+    />
+    {% block extra_css %}
+    
+    
+    {% endblock %}
+
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              marcellus: ["'Marcellus SC'", "serif"],
+              poppins: ["'Poppins'", "sans-serif"],
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="font-poppins">
+    <!-- Header -->
+    <header class="text-white shadow-md" style="background-color: #2a4e92">
+      <div
+        class="container mx-auto px-4 py-3 flex justify-between items-center"
+      >
+        <div class="flex items-center space-x-2 md:space-x-3">
+          <img
+            src="{{ url_for('static', filename='images/schoollogo.png') }}"
+            alt="KapiyuGuide Logo"
+            class="h-8 md:h-10"
+          />
+          <div>
+            <a
+              href="/"
+              class="text-lg md:text-xl font-marcellus block leading-tight"
+              >KapiyuGuide</a
+            >
+            <span class="text-xs md:text-sm text-white-600 block"
+              >Laguna State Polytechnic University</span
+            >
+          </div>
+        </div>
+
+        <!-- Mobile menu button -->
+        <button id="mobile-menu-button" class="md:hidden flex items-center">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 6h16M4 12h16M4 18h16"
+            />
+          </svg>
+        </button>
+
+        <!-- Desktop Navigation -->
+        <nav class="hidden md:flex space-x-6 font-poppins font-bold">
+          <a
+            href="{{ url_for('index') }}"
+            class="px-2 py-1 transition {% if request.path == url_for('index') %}border-b-2 border-white{% else %}hover:text-blue-200{% endif %}"
+            >About</a
+          >
+          <a
+            href="{{ url_for('offices') }}"
+            class="px-2 py-1 transition {% if request.path == url_for('offices') %}border-b-2 border-white{% else %}hover:text-blue-200{% endif %}"
+            >Offices</a
+          >
+          <a
+            href="{{ url_for('securityprivacy') }}"
+            class="px-2 py-1 transition {% if request.path == url_for('securityprivacy') %}border-b-2 border-white{% else %}hover:text-blue-200{% endif %}"
+            >Security & Privacy</a
+          >
+        </nav>
+
+        <div class="hidden md:flex items-center space-x-3">
+          <a
+            href="{{ url_for('login') }}"
+            class="border border-white px-3 py-1 rounded hover:bg-blue-700 transition"
+            >Log in</a
+          >
+          <a
+          href="{{ url_for('register') }}"
+            class="bg-white text-blue-800 px-3 py-1 rounded hover:bg-blue-100 transition"
+            >Sign up</a
+          >
+        </div>
+      </div>
+
+      <!-- Mobile Navigation Menu -->
+      <div id="mobile-menu" class="hidden md:hidden">
+        <nav class="px-4 pt-2 pb-4 space-y-3 font-poppins font-bold">
+          <a
+            href="{{ url_for('index') }}"
+            class="block hover:text-blue-200 transition"
+            >About</a
+          >
+          <a
+            href="{{ url_for('offices') }}"
+            class="block hover:text-blue-200 transition"
+            >Offices</a
+          >
+          <a
+            href="{{ url_for('securityprivacy') }}"
+            class="block hover:text-blue-200 transition"
+            >Security & Privacy</a
+          >
+          <div class="flex space-x-3 pt-2">
+            <a
+              href="{{ url_for('login') }}"
+              class="border border-white px-3 py-1 rounded hover:bg-blue-700 transition"
+              >Log in</a
+            >
+            <a
+            href="{{ url_for('register') }}"
+              class="bg-white text-blue-800 px-3 py-1 rounded hover:bg-blue-100 transition"
+              >Sign up</a
+            >
+          </div>
+        </nav>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>{% block content %}{% endblock %}</main>
+
+    <!-- Footer -->
+    <footer class="bg-blue-800 text-white text-center py-4 mt-0">
+      <p class="text-sm">© 2025 | KapiyuGuide | All rights reserved.</p>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+      // Mobile menu toggle
+      document.addEventListener("DOMContentLoaded", function () {
+        const mobileMenuButton = document.getElementById("mobile-menu-button");
+        const mobileMenu = document.getElementById("mobile-menu");
+
+        if (mobileMenuButton && mobileMenu) {
+          mobileMenuButton.addEventListener("click", function () {
+            mobileMenu.classList.toggle("hidden");
+          });
+        }
+      });
+    </script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+  </body>
+</html>

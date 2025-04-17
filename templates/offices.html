@@ -1,0 +1,272 @@
+{% extends 'headerbase.html' %}
+
+{% block title %}KapiyuGuide - Supported Offices{% endblock %}
+
+{% block content %}
+<!-- Hero Section with Background Image -->
+<div class="relative">
+  <div
+    class="bg-cover bg-center h-64 md:h-72"
+    style="background-image: url('{{ url_for('static', filename='images/backgroundlanding.png') }}');"
+  >
+    <div class="absolute inset-0 bg-opacity-70"></div>
+    <div
+      class="relative container mx-auto px-4 h-full flex flex-col justify-center"
+    >
+      <div class="max-w-3xl text-white">
+        <h1 class="text-5xl sm:text-6xl md:text-7xl font-italic font-bold mb-2 text-stroke">
+          KapiyuGuide
+        </h1>
+        <p class="text-xl md:text-2xl mb-2 md:mb-4 font-bold">
+          "Manage Your Campus Inquiries with Ease"
+        </p>
+        <p class="text-base md:text-lg mb-2">
+          Easily reach the right office for your concern
+          <br>—anytime, anywhere
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- School Logo -->
+  <div class="absolute top-10 right-5 sm:right-10 md:right-20 lg:right-32">
+    <img
+      src="{{ url_for('static', filename='images/schoollogo.png') }}"
+      alt="Polytechnic University Logo"
+      class="w-24 sm:w-32 md:w-40"
+    />
+  </div>
+</div>
+
+<!-- Supported Offices Section -->
+<section class="py-8 md:py-10">
+  <div class="container mx-auto px-4">
+    <h2 class="text-2xl sm:text-4xl font-bold text-blue-800 mb-2 text-center">Supported Offices</h2>
+    <p class="text-sm md:text-base text-gray-700 mb-8 text-center">
+      Easily reach the right unit or office. The system connects students with official 
+      LSPU-SC offices to manage inquiries efficiently, securely, and in an organized 
+      way.
+    </p>
+
+    <!-- Offices Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10">
+      
+      <!-- Office of the Registrar -->
+      <div class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200 flex flex-col">
+        <div class="bg-gradient-to-b from-blue-700 to-blue-900 text-white font-bold py-3 px-4 text-center text-2xl">
+          Office of the Registrar
+        </div>
+        <div class="p-4 md:p-6 flex flex-col flex-grow">
+          <p class="text-sm md:text-base text-gray-700 mb-6 leading-relaxed text-justify">
+            Handles academic records, enrollment matters, subject additions/dropping, 
+            includes transcript requests, COR issues, document certification, admission requirements, transfer 
+            applications, and graduation evaluations.
+          </p>
+          <div class="mt-auto pt-2">
+          <a href="#" class="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition">
+            Contact Office
+          </a>
+        </div>
+        </div>
+      </div>
+      
+      <!-- Office of Student Affairs and Services (OSAS) -->
+      <div class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
+        <div class="bg-gradient-to-b from-green-700 to-green-900 text-white font-bold py-3 px-4 text-center text-2xl">
+          Office of Student Affairs and Services (OSAS)
+        </div>
+        <div class="p-4 md:p-6 flex flex-col flex-grow">
+          <p class="text-sm md:text-base text-gray-700 mb-6 leading-relaxed text-justify">
+            Manages student activities, student ID concerns, student handbook, student organization activity requests, lost and 
+            found, and certificates of good moral character. It also handles student welfare and disciplinary matters.
+          </p>
+          <div class="mt-auto pt-2">
+            <a href="#" class="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition">
+              Contact Office
+            </a>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Scholarship and Financial Aid -->
+      <div class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
+        <div class="bg-gradient-to-b from-yellow-600 to-yellow-800 text-white font-bold py-3 px-4 text-center text-2xl">
+          Scholarship and Financial Assistance Office
+        </div>
+        <div class="p-4 md:p-6 flex flex-col flex-grow">
+          <p class="text-sm md:text-base text-gray-700 mb-6 leading-relaxed text-justify">
+            Handles scholarship certifications, scholarship application status, waivers, and financial assistance programs. 
+            It also assists with financial aid inquiries and any budget-related student concerns.
+          </p>
+          <div class="mt-auto pt-2">
+            <a href="#" class="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition">
+              Contact Office
+            </a>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Guidance and Counseling Office -->
+      <div class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
+        <div class="bg-gradient-to-b from-pink-700 to-pink-900 text-white font-bold py-3 px-4 text-center text-2xl">
+          Guidance and Counseling Office
+        </div>
+        <div class="p-4 md:p-6 flex flex-col flex-grow">
+          <p class="text-sm md:text-base text-gray-700 mb-6 leading-relaxed text-justify">
+            Offers personal and academic counseling, psychological tests, career guidance, special case referrals, and mental health 
+            concerns. It provides confidential support, consultations, and academic advice.
+          </p>
+          <div class="mt-auto pt-2">
+            <a href="#" class="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition">
+              Contact Office
+            </a>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Business Affairs Office (BAO) -->
+      <div class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
+        <div class="bg-gradient-to-b from-orange-700 to-orange-900 text-white font-bold py-3 px-4 text-center text-2xl">
+          Business Affairs Office (BAO)
+        </div>
+        <div class="p-4 md:p-6 flex flex-col flex-grow">
+          <p class="text-sm md:text-base text-gray-700 mb-6 leading-relaxed text-justify">
+            Manages student payments, billing inquiries, payment verification, issuance of official receipts, and other pricing 
+            and costing. Inquiries may include refund requests and any other related student issues.
+          </p>
+          <div class="mt-auto pt-2">
+            <a href="#" class="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition">
+              Contact Office
+            </a>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Gender and Development (GAD) Office -->
+      <div class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200 flex flex-col">
+        <div class="bg-gradient-to-b from-purple-700 to-purple-900 text-white font-bold py-3 px-4 text-center text-2xl">
+          Gender and Development Office (GAD)
+        </div>
+        <div class="p-4 md:p-6 flex flex-col flex-grow">
+          <p class="text-sm md:text-base text-gray-700 mb-6 leading-relaxed text-justify">
+            Handles gender-related events, gender sensitivity training, counseling referrals, and advocacy initiatives. 
+            It focuses on gender equality and inclusivity programs.
+          </p>
+          <div class="mt-auto pt-2">
+            <a href="#" class="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition">
+              Contact Office
+            </a>
+          </div>
+        </div>
+      </div>
+      
+      <!-- ICT Services (ICTS) Office -->
+      <div class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200 flex flex-col">
+        <div class="bg-gradient-to-b from-teal-700 to-teal-900 text-white font-bold py-3 px-4 text-center text-2xl">
+          ICT Services (ICTS) Office
+        </div>
+        <div class="p-4 md:p-6 flex flex-col flex-grow">
+          <p class="text-sm md:text-base text-gray-700 mb-6 leading-relaxed text-justify">
+            Manages ID registration, barcode activation, student portal account issues, and LSPU email requests. It also handles 
+            system updates and ID or portal login problems.
+          </p>
+          <div class="mt-auto pt-2">
+            <a href="#" class="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition">
+              Contact Office
+            </a>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Office of the Cashier -->
+      <div class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
+        <div class="bg-gradient-to-b from-indigo-700 to-teal-900 text-white font-bold py-3 px-4 text-center text-2xl">
+          Office of the Cashier
+        </div>
+        <div class="p-4 md:p-6 flex flex-col flex-grow">
+          <p class="text-sm md:text-base text-gray-700 mb-6 leading-relaxed text-justify">
+            Handles the assessment and collection of tuition and other school fees. It is also responsible for the issuance of official 
+            receipts, processing of payment transactions and recording of student fees.
+          </p>
+          <div class="mt-auto pt-2">
+            <a href="#" class="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition">
+              Contact Office
+            </a>
+          </div>
+        </div>
+      </div>
+      
+      <!-- University Library -->
+      <div class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
+        <div class="bg-gradient-to-b from-sky-700 to-sky-900 text-white font-bold py-3 px-4 text-center text-2xl">
+          University Library
+        </div>
+        <div class="p-4 md:p-6 flex flex-col flex-grow">
+          <p class="text-sm md:text-base text-gray-700 mb-6 leading-relaxed text-justify">
+            Provides access to a wide range of academic resources including books, journals, and digital materials. It helps the 
+            office for library card issuance, borrowing and returning of materials, and research assistance.
+          </p>
+          <div class="mt-auto pt-2">
+            <a href="#" class="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition">
+              Contact Office
+            </a>
+          </div>
+        </div>
+      </div>
+      
+      <!-- School Clinic -->
+      <div class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
+        <div class="bg-gradient-to-b from-red-700 to-red-900 text-white font-bold py-3 px-4 text-center text-2xl">
+          School Clinic
+        </div>
+        <div class="p-4 md:p-6 flex flex-col flex-grow">
+          <p class="text-sm md:text-base text-gray-700 mb-6 leading-relaxed text-justify">
+            Provides medical consultations, check-ups, drug testing, laboratory exams, and medical clearances. It is also the 
+            office for heat result issuance, physical exams, and medical certificates.
+          </p>
+          <div class="mt-auto pt-2">
+            <a href="#" class="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition">
+              Contact Office
+            </a>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // You can add office-specific JavaScript here if needed
+  document.addEventListener('DOMContentLoaded', function() {
+    // Add hover effects to office cards
+    const officeCards = document.querySelectorAll('.bg-white.rounded-lg');
+    officeCards.forEach(card => {
+      card.addEventListener('mouseenter', function() {
+        this.classList.add('shadow-lg');
+        this.classList.add('transform');
+        this.classList.add('scale-101');
+        this.style.transition = 'all 0.2s ease-in-out';
+      });
+      
+      card.addEventListener('mouseleave', function() {
+        this.classList.remove('shadow-lg');
+        this.classList.remove('transform');
+        this.classList.remove('scale-101');
+      });
+    });
+    
+    // Add click event to contact buttons for future functionality
+    const contactButtons = document.querySelectorAll('a.bg-blue-600');
+    contactButtons.forEach(button => {
+      button.addEventListener('click', function(e) {
+        // This can be expanded later for actual contact functionality
+        const officeName = this.closest('.bg-white.rounded-lg').querySelector('.bg-blue-800').textContent.trim();
+        console.log(`Contact requested for: ${officeName}`);
+      });
+    });
+  });
+</script>
+{% endblock %}
