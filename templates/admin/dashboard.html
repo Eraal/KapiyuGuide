@@ -1,0 +1,195 @@
+{% extends "admin/adminbase.html" %}
+
+{% block title %}Admin Dashboard - KapiyuGuide{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- System-wide Stats Section -->
+    <section>
+        <h2 class="text-xl font-bold mb-4">SYSTEM-WIDE STATS</h2>
+        <div class="bg-[url('{{ url_for('static', filename='images/backgroundlanding.png') }}')] bg-cover bg-center bg-no-repeat bg-blend-overlay p-12 rounded-lg shadow-md">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Total Students -->
+                <div class="bg-white p-4 rounded-lg shadow">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-sm font-medium text-gray-700">TOTAL STUDENTS</h3>
+                        <span class="text-purple-600 text-lg"><i class="fas fa-user-graduate"></i></span>
+                    </div>
+                    <p class="text-2xl font-bold mt-2">{{ total_students }}</p>
+                </div>
+
+                <!-- Total Office Admins -->
+                <div class="bg-white p-4 rounded-lg shadow">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-sm font-medium text-gray-700">TOTAL OFFICE ADMINS</h3>
+                        <span class="text-rose-600 text-lg"><i class="fas fa-user-tie"></i></span>
+                    </div>
+                    <p class="text-2xl font-bold mt-2">{{ total_office_admins }}</p>
+                </div>
+
+                <!-- Total Inquiries -->
+                <div class="bg-white p-4 rounded-lg shadow">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-sm font-medium text-gray-700">TOTAL INQUIRIES</h3>
+                        <span class="text-sky-600 text-lg"><i class="fas fa-envelope-open-text"></i></span>
+                    </div>
+                    <p class="text-2xl font-bold mt-2">{{ total_inquiries }}</p>
+                </div>
+
+                <!-- Pending Inquiries -->
+                <div class="bg-white p-4 rounded-lg shadow">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-sm font-medium text-gray-700">PENDING INQUIRIES</h3>
+                        <span class="text-yellow-500 text-lg"><i class="fas fa-hourglass-half"></i></span>
+                    </div>
+                    <p class="text-2xl font-bold mt-2">{{ pending_inquiries }}</p>
+                </div>
+
+                <!-- Inquiries Resolved -->
+                <div class="bg-white p-4 rounded-lg shadow">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-sm font-medium text-gray-700">INQUIRIES RESOLVED</h3>
+                        <span class="text-green-600 text-lg"><i class="fas fa-check-circle"></i></span>
+                    </div>
+                    <p class="text-2xl font-bold mt-2">{{ resolved_inquiries }}</p>
+                </div>
+
+                <!-- Top Inquiries -->
+                <div class="bg-white p-4 rounded-lg shadow">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-sm font-medium text-gray-700">TOP INQUIRIES</h3>
+                        <span class="text-orange-500 text-lg"><i class="fas fa-trophy"></i></span>
+                    </div>
+                    <p class="text-md font-bold mt-2 text-green-600">{{ top_inquiry_office }}</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Inquiries Each Offices Section -->
+    <section>
+        <h2 class="text-xl font-bold mb-4">INQUIRIES EACH OFFICES</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {% for office in offices %}
+            <div class="shadow-md rounded-lg overflow-hidden">
+                <div class="bg-red-900 text-white p-2 text-center">
+                    <h3 class="font-medium">{{ office.name }}</h3>
+                </div>
+                <div class="{{ office.bg }} p-4 text-center">
+                    <p class="text-sm font-medium">Total Inquiries</p>
+                    <p class="text-2xl font-bold">{{ office.count }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- Graphs Section -->
+    <section>
+        <h2 class="text-xl font-bold mb-4">GRAPHS</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Pie Chart -->
+            <div class="bg-white p-4 rounded-lg shadow-md">
+                <canvas id="inquiriesPieChart"></canvas>
+            </div>
+            <!-- Bar Chart -->
+            <div class="bg-white p-4 rounded-lg shadow-md">
+                <canvas id="inquiriesBarChart"></canvas>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Pie Chart
+        const pieCtx = document.getElementById('inquiriesPieChart').getContext('2d');
+        const pieChart = new Chart(pieCtx, {
+            type: 'doughnut',
+            data: {
+                labels: [
+                    'Office of Student Affair',
+                    'Gender and Development',
+                    'ICT Services',
+                    'Business Affairs Office',
+                    'Guidance Office',
+                    'School Clinic',
+                    'Office of the Registrar',
+                    'Scholarship Office'
+                ],
+                datasets: [{
+                    data: [45, 24, 1, 15, 35, 13, 18, 29],
+                    backgroundColor: [
+                        '#4bc0c0',
+                        '#36a2eb',
+                        '#ff6384',
+                        '#ff9f40',
+                        '#ffcd56',
+                        '#c9cbcf',
+                        '#9966ff',
+                        '#2a4858'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'left',
+                        labels: {
+                            font: {
+                                size: 10
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Bar Chart
+        const barCtx = document.getElementById('inquiriesBarChart').getContext('2d');
+        const barChart = new Chart(barCtx, {
+            type: 'bar',
+            data: {
+                labels: [
+                    'Student Affair',
+                    'Gender Dev',
+                    'ICT',
+                    'Business',
+                    'Guidance',
+                    'Clinic',
+                    'Registrar',
+                    'Scholarship'
+                ],
+                datasets: [{
+                    label: 'Total Inquiries',
+                    data: [45, 24, 1, 15, 35, 13, 18, 29],
+                    backgroundColor: '#4bc0c0',
+                    borderColor: '#4bc0c0',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 50
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}
