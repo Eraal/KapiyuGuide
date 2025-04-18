@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}KapiyuGuide Admin{% endblock %}</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .sidebar-item {
+            transition: all 0.3s;
+        }
+        .sidebar-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .active-nav {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-left: 4px solid white;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex flex-col h-screen">
+    <!-- Top Navigation Bar -->
+    <nav class="bg-blue-800 text-white p-3 flex justify-between items-center shadow-lg">
+        <div class="flex items-center">
+            <img src="{{ url_for('static', filename='images/schoollogo.png') }}" alt="KapiyuGuide Logo" class="h-8 w-8 mr-2">
+            <span class="font-bold text-xl">KapiyuGuide</span>
+        </div>
+        <div class="flex items-center space-x-4">
+            <div class="text-sm font-medium">WELCOME, <span class="font-bold">SUPER ADMIN!</span></div>
+            <div class="flex items-center space-x-4">
+                <a href="#" class="text-white hover:text-gray-200">
+                    <i class="fas fa-user-circle text-xl"></i>
+                </a>
+                <a href="#" class="text-white hover:text-gray-200 relative">
+                    <i class="fas fa-bell text-xl"></i>
+                    <span class="absolute -top-1 -right-1 bg-red-500 text-xs rounded-full h-4 w-4 flex items-center justify-center">1</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="flex flex-1 overflow-hidden">
+        <!-- Sidebar Navigation -->
+        <aside class="bg-blue-800 text-white w-52 flex-shrink-0 overflow-y-auto">
+            <nav class="py-4">
+                <a href="{{ url_for('admin.dashboard') }}" class="sidebar-item flex items-center px-4 py-3 {% if request.endpoint == 'admin.dashboard' %}active-nav{% endif %} {{ 'border-l-4 border-white' if request.endpoint == 'admin.dashboard' else '' }}">
+                    <i class="fas fa-th-large w-6"></i>
+                    <span class="ml-2 font-medium">DASHBOARD</span>
+                </a>
+                <a href="{{ url_for('admin.manage_admins') }}" class="sidebar-item flex items-center px-4 py-3 {% if request.endpoint == 'admin.manage_admins' %}active-nav{% endif %} {{ 'border-l-4 border-white' if request.endpoint == 'admin.manage_admins' else '' }}">
+                    <i class="fas fa-user-shield w-6"></i>
+                    <span class="ml-2 font-medium">MANAGE ADMINS</span>
+                </a>
+                <a href="{{ url_for('admin.students') }}" class="sidebar-item flex items-center px-4 py-3 {% if request.endpoint == 'admin.students' %}active-nav{% endif %} {{ 'border-l-4 border-white' if request.endpoint == 'admin.students' else '' }}">
+                    <i class="fas fa-user-graduate w-6"></i>
+                    <span class="ml-2 font-medium">STUDENTS</span>
+                </a>
+                <a href="{{ url_for('admin.inquiry_logs') }}" class="sidebar-item flex items-center px-4 py-3 {% if request.endpoint == 'admin.inquiry_logs' %}active-nav{% endif %} {{ 'border-l-4 border-white' if request.endpoint == 'admin.inquiry_logs' else '' }}">
+                    <i class="fas fa-clipboard-list w-6"></i>
+                    <span class="ml-2 font-medium">INQUIRY LOGS</span>
+                </a>
+                <a href="{{ url_for('admin.announcement') }}" class="sidebar-item flex items-center px-4 py-3 {% if request.endpoint == 'admin.announcement' %}active-nav{% endif %} {{ 'border-l-4 border-white' if request.endpoint == 'admin.announcement' else '' }}">
+                    <i class="fas fa-bullhorn w-6"></i>
+                    <span class="ml-2 font-medium">ANNOUNCEMENT</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto p-4">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
