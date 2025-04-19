@@ -6,6 +6,7 @@
     <title>{% block title %}KapiyuGuide Admin{% endblock %}</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -44,17 +45,17 @@
 
     <div class="flex flex-1 overflow-hidden">
         <!-- Sidebar Navigation -->
-        <aside class="bg-blue-800 text-white w-52 flex-shrink-0 overflow-y-auto">
+        <aside class="bg-blue-900 text-white w-56 flex-shrink-0 overflow-y-auto">
             <nav class="py-4">
                 <a href="{{ url_for('admin.dashboard') }}" class="sidebar-item flex items-center px-4 py-3 {% if request.endpoint == 'admin.dashboard' %}active-nav{% endif %} {{ 'border-l-4 border-white' if request.endpoint == 'admin.dashboard' else '' }}">
                     <i class="fas fa-th-large w-6"></i>
                     <span class="ml-2 font-medium">DASHBOARD</span>
                 </a>
-                <a href="{{ url_for('admin.manage_admins') }}" class="sidebar-item flex items-center px-4 py-3 {% if request.endpoint == 'admin.manage_admins' %}active-nav{% endif %} {{ 'border-l-4 border-white' if request.endpoint == 'admin.manage_admins' else '' }}">
+                <a href="{{ url_for('admin.adminmanage') }}" class="sidebar-item flex items-center px-4 py-3 {% if request.endpoint == 'admin.manage_admins' %}active-nav{% endif %} {{ 'border-l-4 border-white' if request.endpoint == 'admin.manage_admins' else '' }}">
                     <i class="fas fa-user-shield w-6"></i>
                     <span class="ml-2 font-medium">MANAGE ADMINS</span>
                 </a>
-                <a href="{{ url_for('admin.students') }}" class="sidebar-item flex items-center px-4 py-3 {% if request.endpoint == 'admin.students' %}active-nav{% endif %} {{ 'border-l-4 border-white' if request.endpoint == 'admin.students' else '' }}">
+                <a href="{{ url_for('admin.announcement') }}" class="sidebar-item flex items-center px-4 py-3 {% if request.endpoint == 'admin.students' %}active-nav{% endif %} {{ 'border-l-4 border-white' if request.endpoint == 'admin.students' else '' }}">
                     <i class="fas fa-user-graduate w-6"></i>
                     <span class="ml-2 font-medium">STUDENTS</span>
                 </a>
@@ -75,6 +76,8 @@
         </main>
     </div>
 
-    {% block extra_js %}{% endblock %}
+    {% block extra_js %}
+    
+    {% endblock %}
 </body>
 </html>
