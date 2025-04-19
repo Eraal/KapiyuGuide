@@ -5,7 +5,7 @@ from app.models import User, Student  # Added Student import
 
 auth_bp = Blueprint('auth', __name__, template_folder='../templates') 
 
-print(generate_password_hash('admin', method='pbkdf2:sha256'))
+
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():

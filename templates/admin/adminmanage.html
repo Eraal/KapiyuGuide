@@ -1,0 +1,432 @@
+{% extends "admin/adminbase.html" %}
+
+{% block title %}KapiyuGuide Admin Dashboard{% endblock %}
+
+{% block content %}
+    <div class="flex items-center mb-6">
+        <i class="fas fa-th-large mr-2 text-blue-800"></i>
+        <h2 class="text-xl font-bold">Super Admin Dashboard — Manage Admins / Offices</h2>
+    </div>
+
+    <!-- Quick Stats Cards -->
+    <div class="bg-[url('{{ url_for('static', filename='images/backgroundlanding.png') }}')] bg-cover bg-center bg-no-repeat bg-blend-overlay rounded-lg p-4 shadow-lg">
+        <h3 class="text-white font-bold mb-3 ml-2">QUICK STATS</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- Total Offices -->
+            <div class="bg-white rounded-lg shadow p-4 flex justify-between items-center transition-transform hover:scale-105">
+                <div>
+                    <h4 class="text-sm font-semibold text-gray-600">TOTAL OFFICES</h4>
+                    <p class="text-3xl font-bold text-blue-700">{{ total_offices }}</p>
+                </div>
+                <div class="bg-blue-100 p-3 rounded-full">
+                    <i class="fas fa-building text-blue-500 text-xl"></i>
+                </div>
+            </div>
+
+            <!-- Active Office Admin -->
+            <div class="bg-white rounded-lg shadow p-4 flex justify-between items-center transition-transform hover:scale-105">
+                <div>
+                    <h4 class="text-sm font-semibold text-gray-600">ACTIVE OFFICE ADMIN</h4>
+                    <p class="text-3xl font-bold text-red-600">{{ active_office_admins }}</p>
+                </div>
+                <div class="bg-red-100 p-3 rounded-full">
+                    <i class="fas fa-user-check text-red-500 text-xl"></i>
+                </div>
+            </div>
+
+            <!-- Unassigned Office -->
+            <div class="bg-white rounded-lg shadow p-4 flex justify-between items-center transition-transform hover:scale-105">
+                <div>
+                    <h4 class="text-sm font-semibold text-gray-600">UNASSIGNED OFFICE</h4>
+                    <p class="text-3xl font-bold text-green-600">{{ unassigned_offices }}</p>
+                </div>
+                <div class="bg-green-100 p-3 rounded-full">
+                    <i class="fas fa-door-open text-green-500 text-xl"></i>
+                </div>
+            </div>
+
+            <!-- Unassigned Admin -->
+            <div class="bg-white rounded-lg shadow p-4 flex justify-between items-center transition-transform hover:scale-105">
+                <div>
+                    <h4 class="text-sm font-semibold text-gray-600">UNASSIGNED ADMIN</h4>
+                    <p class="text-3xl font-bold text-green-600">{{ unassigned_admins }}</p>
+                </div>
+                <div class="bg-green-100 p-3 rounded-full">
+                    <i class="fas fa-user-slash text-green-500 text-xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Office Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 card-container rounded-lg p-4">
+        {% for office in offices %}
+        <div class="bg-white rounded shadow-md overflow-hidden border border-gray-200">
+            <div class="bg-red-900 text-white p-2 flex justify-between items-center">
+                <h4 class="font-semibold">{{ office.name }}</h4>
+                <button 
+                    class="bg-blue-500 hover:bg-blue-600 text-white text-xs px-3 py-1 rounded view-office-button" 
+                    data-office-id="{{ office.id }}"
+                    data-office-name="{{ office.name }}"
+                    onclick="openOfficeModal({{ office.id }}, '{{ office.name }}')">
+                    VIEW
+                </button>
+            </div>
+            <div class="p-3 {% if office.office_admins|length > 0 %}bg-blue-100{% else %}bg-yellow-100{% endif %}">
+                <p class="text-sm text-gray-700">ADMINS: <span class="font-bold">{{ office.office_admins|length }}</span></p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Admin Table Section -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
+        <div class="flex justify-between items-center p-4 border-b border-gray-200">
+            <h3 class="font-bold text-gray-700">TOTAL OFFICE ADMINS</h3>
+            <button class="bg-blue-800 hover:bg-blue-900 text-white px-3 py-1 rounded flex items-center" onclick="openAddAdminModal()">
+                <i class="fas fa-plus mr-1"></i> ADD
+            </button>
+        </div>
+        
+        <!-- Search and Filter Controls -->
+        <div class="p-4 flex flex-col md:flex-row justify-between items-center gap-3">
+            <div class="w-full md:w-1/2">
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+                        <i class="fas fa-search text-gray-400"></i>
+                    </span>
+                    <input type="text" id="adminSearchInput" class="pl-10 pr-4 py-2 border border-gray-300 rounded w-full" placeholder="Search...">
+                </div>
+            </div>
+            <div class="flex flex-col md:flex-row gap-2 w-full md:w-auto">
+                <div class="flex items-center">
+                    <span class="mr-2 text-gray-600 whitespace-nowrap">Filtered by:</span>
+                    <select id="statusFilter" class="border border-gray-300 rounded py-2 px-3">
+                        <option value="all">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                </div>
+                <div>
+                    <select id="sortFilter" class="border border-gray-300 rounded py-2 px-3">
+                        <option value="name">Sort by Name</option>
+                        <option value="office">Sort by Office</option>
+                        <option value="last_login">Sort by Last Login</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Table -->
+        <div class="overflow-x-auto">
+            <table class="min-w-full bg-white">
+                <thead>
+                    <tr class="bg-gray-200 text-gray-600 uppercase text-sm">
+                        <th class="py-3 px-4 text-left">OFFICE</th>
+                        <th class="py-3 px-4 text-left">ADMIN NAME</th>
+                        <th class="py-3 px-4 text-left">EMAIL</th>
+                        <th class="py-3 px-4 text-left">STATUS</th>
+                        <th class="py-3 px-4 text-left">LAST LOGIN</th>
+                        <th class="py-3 px-4 text-left">LAST UPDATED</th>
+                        <th class="py-3 px-4 text-center">ACTION</th>
+                    </tr>
+                </thead>
+                <tbody class="text-gray-600 text-sm" id="adminTableBody">
+                    {% for user in office_admins %}
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="py-3 px-4">
+                            {% if user.office_admin and user.office_admin.office %}
+                                {{ user.office_admin.office.name }}
+                            {% else %}
+                                Unassigned
+                            {% endif %}
+                        </td>
+                        <td class="py-3 px-4">{{ user.name }}</td>
+                        <td class="py-3 px-4">{{ user.email }}</td>
+                        <td class="py-3 px-4">
+                            <span class="{% if user.is_active %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %} py-1 px-2 rounded-full text-xs">
+                                {{ 'Active' if user.is_active else 'Inactive' }}
+                            </span>
+                        </td>
+                        <td class="py-3 px-4">{{ user.created_at.strftime('%B %d, %I:%M %p') }}</td>
+                        <td class="py-3 px-4">{{ user.created_at.strftime('%B %d, %I:%M %p') }}</td>
+                        <td class="py-3 px-4 text-center">
+                            <button class="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs mr-1" onclick="openEditAdminModal({{ user.id }})">EDIT</button>
+                            <button class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs" onclick="confirmDeleteAdmin({{ user.id }})">REMOVE</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination Controls -->
+        <div class="px-4 py-3 flex items-center justify-between border-t border-gray-200">
+            <div class="flex-1 flex justify-between sm:hidden">
+                <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                    Previous
+                </a>
+                <a href="#" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                    Next
+                </a>
+            </div>
+            <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                    <p class="text-sm text-gray-700">
+                        Showing <span class="font-medium">1</span> to <span class="font-medium">{{ office_admins|length }}</span> of <span class="font-medium">{{ office_admins|length }}</span> results
+                    </p>
+                </div>
+                <div>
+                    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                        <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                            <span class="sr-only">Previous</span>
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                        <a href="#" aria-current="page" class="z-10 bg-blue-50 border-blue-500 text-blue-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                            1
+                        </a>
+                        <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                            <span class="sr-only">Next</span>
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Admin Modal -->
+    <div id="addAdminModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+        <div class="relative top-20 mx-auto p-5 border w-[500px] shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <div class="flex justify-between items-center border-b pb-3">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">Add New Office Admin</h3>
+                    <button onclick="closeAddAdminModal()" class="text-gray-400 hover:text-gray-500">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <!-- Steps Indicator -->
+                <div class="mt-4 mb-6">
+                    <ol class="flex items-center w-full">
+                        <li id="step-info" class="flex w-full items-center text-blue-800 after:content-[''] after:w-full after:h-1 after:border-b after:border-blue-800 after:border-2 after:inline-block">
+                            <span class="flex items-center justify-center w-8 h-8 bg-blue-800 rounded-full shrink-0 text-white">
+                                1
+                            </span>
+                            <span class="ml-2 text-sm font-medium">Information</span>
+                        </li>
+                        <li id="step-security" class="flex w-full items-center text-gray-400 after:content-[''] after:w-full after:h-1 after:border-b after:border-gray-300 after:border-2 after:inline-block">
+                            <span class="flex items-center justify-center w-8 h-8 bg-gray-300 rounded-full shrink-0">
+                                2
+                            </span>
+                            <span class="ml-2 text-sm font-medium">Security</span>
+                        </li>
+                        <li id="step-role" class="flex items-center text-gray-400">
+                            <span class="flex items-center justify-center w-8 h-8 bg-gray-300 rounded-full shrink-0">
+                                3
+                            </span>
+                            <span class="ml-2 text-sm font-medium">Role</span>
+                        </li>
+                    </ol>
+                </div>
+                
+                <form id="addAdminForm" class="mt-4 text-left" action="{{ url_for('admin.add_admin') }}" method="post" enctype="multipart/form-data">
+                    <!-- Step 1: Information -->
+                    <div id="step1Content" class="step-content">
+                        <div class="mb-4">
+                            <label for="name" class="block text-gray-700 text-sm font-bold mb-2">Full Name <span class="text-red-500">*</span></label>
+                            <input type="text" id="name" name="name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                        </div>
+                        <div class="mb-4">
+                            <label for="email" class="block text-gray-700 text-sm font-bold mb-2">Email <span class="text-red-500">*</span></label>
+                            <input type="email" id="email" name="email" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                        </div>
+                        <div class="mb-4">
+                            <label for="profile_pic" class="block text-gray-700 text-sm font-bold mb-2">Profile Picture (Optional)</label>
+                            <input type="file" id="profile_pic" name="profile_pic" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                        </div>
+                        <div class="mt-6 flex justify-between">
+                            <button type="button" onclick="closeAddAdminModal()" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                                Cancel
+                            </button>
+                            <button type="button" onclick="nextStep(2)" class="bg-blue-800 hover:bg-blue-900 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                                Next
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 2: Security -->
+                    <div id="step2Content" class="step-content hidden">
+                        <div class="mb-4">
+                            <label for="password" class="block text-gray-700 text-sm font-bold mb-2">Password <span class="text-red-500">*</span></label>
+                            <input type="password" id="password" name="password" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                        </div>
+                        <div class="mb-4">
+                            <label for="confirm_password" class="block text-gray-700 text-sm font-bold mb-2">Re-enter Password <span class="text-red-500">*</span></label>
+                            <input type="password" id="confirm_password" name="confirm_password" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                            <p id="password-error" class="text-red-500 text-xs italic hidden mt-1">Passwords do not match</p>
+                        </div>
+                        <div class="mt-6 flex justify-between">
+                            <button type="button" onclick="prevStep(1)" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                                Previous
+                            </button>
+                            <button type="button" onclick="validatePasswordAndNext()" class="bg-blue-800 hover:bg-blue-900 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                                Next
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 3: Role -->
+                    <div id="step3Content" class="step-content hidden">
+                        <div class="mb-4">
+                            <label for="office" class="block text-gray-700 text-sm font-bold mb-2">Office Assignment <span class="text-red-500">*</span></label>
+                            <select id="office" name="office_id" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                                <option value="">Select Office</option>
+                                {% for office in offices %}
+                                <option value="{{ office.id }}">{{ office.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Status</label>
+                            <div class="flex items-center">
+                                <input type="radio" id="active" name="is_active" value="true" checked class="mr-2">
+                                <label for="active" class="mr-4">Active</label>
+                                <input type="radio" id="inactive" name="is_active" value="false" class="mr-2">
+                                <label for="inactive">Inactive</label>
+                            </div>
+                        </div>
+                        <div class="mt-6 flex justify-between">
+                            <button type="button" onclick="prevStep(2)" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                                Previous
+                            </button>
+                            <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                                Create Admin
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Admin Modal - New Modal -->
+<div id="editAdminModal" class="fixed inset-0 bg-gray-800 bg-opacity-75 backdrop-blur-sm overflow-y-auto h-full w-full hidden z-50 flex justify-center items-center">
+    <div class="relative mx-auto p-6 w-full max-w-4xl shadow-2xl rounded-lg bg-white">
+        <div class="mt-3">
+            <div class="flex justify-between items-center border-b pb-4 mb-4">
+                <h3 class="text-2xl leading-6 font-semibold text-gray-900">Edit Office Admin</h3>
+                <button onclick="closeEditAdminModal()" class="text-gray-500 hover:text-gray-700 transition-colors">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <form id="editAdminForm" class="mt-6 text-left" action="{{ url_for('admin.update_admin') }}" method="post">
+                <input type="hidden" id="edit_admin_id" name="admin_id">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="mb-4">
+                        <label for="edit_name" class="block text-gray-700 text-sm font-bold mb-2">Full Name <span class="text-red-500">*</span></label>
+                        <input type="text" id="edit_name" name="name" class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="edit_email" class="block text-gray-700 text-sm font-bold mb-2">Email <span class="text-red-500">*</span></label>
+                        <input type="email" id="edit_email" name="email" class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="edit_office" class="block text-gray-700 text-sm font-bold mb-2">Office Assignment <span class="text-red-500">*</span></label>
+                        <select id="edit_office" name="office_id" class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                            <option value="">Select Office</option>
+                            {% for office in offices %}
+                            <option value="{{ office.id }}">{{ office.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Status</label>
+                        <div class="flex items-center space-x-4 mt-2">
+                            <div class="flex items-center">
+                                <input type="radio" id="edit_active" name="is_active" value="true" class="mr-2 h-4 w-4">
+                                <label for="edit_active" class="text-gray-700">Active</label>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="radio" id="edit_inactive" name="is_active" value="false" class="mr-2 h-4 w-4">
+                                <label for="edit_inactive" class="text-gray-700">Inactive</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-between border-t pt-6 mt-6">
+                    <button type="button" onclick="closeEditAdminModal()" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded focus:outline-none focus:shadow-outline transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded focus:outline-none focus:shadow-outline transition-colors">
+                        Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+    <!-- View Office Modal - Improved Spacious Design -->
+<div id="viewOfficeModal" class="fixed inset-0 bg-gray-800 bg-opacity-75 backdrop-blur-sm overflow-y-auto h-full w-full hidden z-50 flex justify-center items-center">
+    <div class="relative mx-auto p-6 border w-full max-w-2xl shadow-2xl rounded-lg bg-white">
+        <div class="mt-3">
+            <div class="flex justify-between items-center border-b pb-4 mb-4">
+                <h3 id="officeModalTitle" class="text-2xl leading-6 font-semibold text-gray-900"></h3>
+                <button onclick="closeOfficeModal()" class="text-gray-500 hover:text-gray-700 transition-colors">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div class="mt-4">
+                <h4 class="font-semibold text-lg mb-4">Office Administrators</h4>
+                <div id="officeAdminsContainer" class="mb-6 max-h-96 overflow-y-auto">
+                    <div class="animate-pulse">Loading admins...</div>
+                </div>
+                <div class="flex items-center justify-end mt-6">
+                    <button type="button" onclick="closeOfficeModal()" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded focus:outline-none focus:shadow-outline transition-colors">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- Delete Confirmation Modal - Improved Design -->
+<div id="deleteConfirmModal" class="fixed inset-0 bg-gray-800 bg-opacity-75 backdrop-blur-sm overflow-y-auto h-full w-full hidden z-50 flex justify-center items-center">
+    <div class="relative mx-auto p-6 w-full max-w-md shadow-2xl rounded-lg bg-white">
+        <div class="mt-3 text-center">
+            <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-6">
+                <i class="fas fa-exclamation-triangle text-red-600 text-2xl"></i>
+            </div>
+            <h3 class="text-xl leading-6 font-medium text-gray-900 mb-4">Delete Confirmation</h3>
+            <div class="mt-2 px-4 py-3">
+                <p class="text-gray-600">
+                    Are you sure you want to delete this admin? This action cannot be undone.
+                </p>
+            </div>
+            <div class="flex items-center justify-between px-4 py-3 mt-4 space-x-4">
+                <button id="cancelDeleteBtn" class="w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-4 rounded focus:outline-none focus:shadow-outline transition-colors">
+                    Cancel
+                </button>
+                <form id="deleteAdminForm" class="w-full" action="{{ url_for('admin.delete_admin') }}" method="post">
+                    <input type="hidden" id="deleteAdminId" name="admin_id">
+                    <button type="submit" class="w-full bg-red-500 hover:bg-red-700 text-white font-bold py-3 px-4 rounded focus:outline-none focus:shadow-outline transition-colors">
+                        Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/admin/adminmanage.js') }}"></script>
+{% endblock %}
