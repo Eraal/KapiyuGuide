@@ -1,7 +1,8 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, session, request
-from werkzeug.security import check_password_hash, generate_password_hash  # Added import
+from werkzeug.security import check_password_hash, generate_password_hash  
 from app.extensions import db  
-from app.models import User, Student  # Added Student import
+from app.models import User, Student  
+from flask_login import login_user, logout_user
 
 auth_bp = Blueprint('auth', __name__, template_folder='../templates') 
 
@@ -10,19 +11,16 @@ auth_bp = Blueprint('auth', __name__, template_folder='../templates')
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        # Get form data
         email = request.form.get('email')
         password = request.form.get('password')
         
-        # Find the user
         user = User.query.filter_by(email=email).first()
         
         if user and check_password_hash(user.password_hash, password):
-            session['user_id'] = user.id
-            session['role'] = user.role
+            # Replace session with login_user
+            login_user(user)
             flash('Login successful!', 'success')
 
-            # Fixed redirects - use blueprint prefixes
             if user.role == 'super_admin':
                 return redirect(url_for('admin.dashboard')) 
             elif user.role == 'office_admin':
@@ -36,11 +34,7 @@ def login():
             flash('Invalid email or password', 'danger')
             return render_template('auth/login.html')
     
-    # For GET requests, just render the login form
     return render_template('auth/login.html')
-
-
-
 
 
 
@@ -101,3 +95,10 @@ def register():
     
     # For GET requests, render the registration form
     return render_template('auth/register.html')  # Fixed path
+
+
+@auth_bp.route('/logout')
+def logout():
+    logout_user()
+    flash('You have been logged out.', 'success')
+    return redirect(url_for('auth.login'))
