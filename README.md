@@ -8,8 +8,6 @@
 ![image](https://github.com/user-attachments/assets/69b5c37b-6db0-494b-b2fd-745b6d3c7193) ![image](https://github.com/user-attachments/assets/0d3ceaee-6a13-4d43-95f3-aced7c380288)
 ![image](https://github.com/user-attachments/assets/457546ac-b8b2-4e68-8856-3f78787f3672) ![image](https://github.com/user-attachments/assets/d7919b36-2139-4550-b3ce-d3bfa4f4d044)
 
-## draft super admin
-![Uploading image.png…]()
 
 
 
