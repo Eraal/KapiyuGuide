@@ -1,11 +1,13 @@
 from flask import Blueprint, redirect, url_for, render_template, jsonify, request, flash
 from flask_socketio import emit
 from app import socketio
-from app.models import Inquiry, InquiryMessage, User, Office, db, OfficeAdmin
+from app.models import Inquiry, InquiryMessage, User, Office, db, OfficeAdmin, Student, CounselingSession
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from flask_login import login_required, current_user
-from datetime import datetime
+from datetime import datetime, timedelta
+from sqlalchemy import func, case, or_
+import random
 import os
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
@@ -308,17 +310,26 @@ def remove_office_admin():
 def add_admin():
     try:
         # Get form data
-        first_name = request.form.get('first_name')
+        first_name = request.form.get('first_name', '').strip()
         middle_name = request.form.get('middle_name', '')  # Optional
-        last_name = request.form.get('last_name')
-        email = request.form.get('email')
+        last_name = request.form.get('last_name', '').strip()
+        email = request.form.get('email', '').strip()
         password = request.form.get('password')
         confirm_password = request.form.get('confirm_password')
         office_id = request.form.get('office_id')
-        is_active = request.form.get('is_active') == 'true'
         
-        if not all([first_name, last_name, email, password]):
-            return jsonify({'success': False, 'message': 'Please fill all required fields'}), 400
+        # Set is_active to False by default for new admins
+        is_active = False
+        
+        # Validate required fields aren't empty
+        if not first_name:
+            return jsonify({'success': False, 'message': 'First name is required'}), 400
+        if not last_name:
+            return jsonify({'success': False, 'message': 'Last name is required'}), 400
+        if not email:
+            return jsonify({'success': False, 'message': 'Email is required'}), 400
+        if not password:
+            return jsonify({'success': False, 'message': 'Password is required'}), 400
         
         if password != confirm_password:
             return jsonify({'success': False, 'message': 'Passwords do not match'}), 400
@@ -471,6 +482,24 @@ def update_admin():
         if existing_user:
             return jsonify({'success': False, 'message': 'Email already exists for another user'}), 400
         
+        # Update profile picture if provided
+        if 'profile_pic' in request.files:
+            profile_pic = request.files['profile_pic']
+            if profile_pic and profile_pic.filename != '':
+                # Save profile picture
+                filename = secure_filename(profile_pic.filename)
+                # Create upload folder if it doesn't exist
+                upload_folder = os.path.join(current_app.root_path, 'static/uploads/profiles')
+                if not os.path.exists(upload_folder):
+                    os.makedirs(upload_folder)
+                
+                # Save file
+                profile_pic_path = os.path.join('uploads/profiles', filename)
+                profile_pic.save(os.path.join(current_app.root_path, 'static', profile_pic_path))
+                
+                # Update the admin's profile pic path
+                admin.profile_pic = profile_pic_path
+        
         # Update admin user information
         admin.first_name = first_name
         admin.middle_name = middle_name
@@ -502,6 +531,36 @@ def update_admin():
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'message': f'Error updating admin: {str(e)}'}), 500
+    
+@admin_bp.route('/reset_admin_password', methods=['POST'])
+def reset_admin_password():
+    try:
+        admin_id = request.form.get('admin_id')
+        
+        if not admin_id:
+            return jsonify({'success': False, 'message': 'Admin ID is required'}), 400
+        
+        admin = User.query.filter_by(id=admin_id, role='office_admin').first()
+        if not admin:
+            return jsonify({'success': False, 'message': 'Admin not found'}), 404
+        
+        # Generate a 4-digit default password
+        import random
+        default_password = ''.join(random.choices('0123456789', k=4))
+        
+        # Update password
+        admin.password_hash = generate_password_hash(default_password)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True, 
+            'message': 'Password reset successfully', 
+            'password': default_password
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': f'Error resetting password: {str(e)}'}), 500
 
 @admin_bp.route('/api/offices', methods=['GET'])
 def get_offices():
@@ -516,11 +575,250 @@ def get_offices():
     except Exception as e:
         return jsonify({'success': False, 'message': f'Error fetching offices: {str(e)}'}), 500
 
-#####################################################################################################################
+################################################ STUDENT #####################################################################
+
+@admin_bp.route('/student_manage')
+@login_required
+def student_manage():
+    # Check if the user is a super_admin
+    if current_user.role != 'super_admin':
+        flash('Access denied. You do not have permission to view this page.', 'danger')
+        return redirect(url_for('main.index'))
+    
+    # Query all students with their user information
+    students = Student.query.join(User).all()
+    
+    # Calculate statistics
+    total_students = Student.query.count()
+    active_students = Student.query.join(User).filter(User.is_active == True).count()
+    inactive_students = total_students - active_students
+    
+    # Calculate recently registered (last 7 days)
+    seven_days_ago = datetime.utcnow() - timedelta(days=7)
+    recently_registered = Student.query.join(User).filter(User.created_at >= seven_days_ago).count()
+    
+    # Make sure the file is named 'studentmanage.html' to match what's in your error
+    return render_template('admin/studentmanage.html',
+                           students=students,
+                           total_students=total_students,
+                           active_students=active_students,
+                           inactive_students=inactive_students,
+                           recently_registered=recently_registered)
+
+@admin_bp.route('/toggle_student_status', methods=['POST'])
+@login_required
+def toggle_student_status():
+    if current_user.role != 'super_admin':
+        return jsonify({'success': False, 'message': 'Access denied'}), 403
+    
+    data = request.json
+    student_id = data.get('student_id')
+    is_active = data.get('is_active')
+    
+    if student_id is None or is_active is None:
+        return jsonify({'success': False, 'message': 'Missing required data'}), 400
+    
+    try:
+        # Find the student and update the associated user's active status
+        student = Student.query.get(student_id)
+        if not student:
+            return jsonify({'success': False, 'message': 'Student not found'}), 404
+        
+        student.user.is_active = bool(is_active)
+        db.session.commit()
+        
+        status = 'activated' if is_active else 'deactivated'
+        flash(f'Student account has been {status}', 'success')
+        
+        return jsonify({'success': True, 'message': 'Student status updated successfully'})
+    
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
+    
+
+
+@admin_bp.route('/view_student/<int:student_id>', methods=['GET', 'POST'])
+@login_required
+def view_student(student_id):
+    if current_user.role != 'super_admin':
+        flash('Access denied. You do not have permission to view this page.', 'danger')
+        return redirect(url_for('main.index'))
+    
+    student = Student.query.get_or_404(student_id)
+    
+    if request.method == 'POST':
+        try:
+            # Update user information
+            student.user.first_name = request.form.get('first_name')
+            student.user.middle_name = request.form.get('middle_name')
+            student.user.last_name = request.form.get('last_name')
+            student.user.email = request.form.get('email')
+            
+            # Update student-specific information
+            student.phone_number = request.form.get('phone_number')
+            student.address = request.form.get('address')
+            
+            # Check if password reset was requested
+            if 'reset_password' in request.form:
+                # Generate a random 4-digit password
+                new_password = ''.join(random.choices('0123456789', k=4))
+                # Hash the password
+                student.user.password_hash = generate_password_hash(new_password)
+                
+                flash(f'Password has been reset to: {new_password}', 'success')
+            
+            db.session.commit()
+            flash('Student information updated successfully', 'success')
+            return redirect(url_for('admin.student_manage'))
+            
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error updating student: {str(e)}', 'danger')
+    
+    return render_template('admin/view_student.html', student=student)
 
 @admin_bp.route('/inquiry-logs')
+@login_required
 def inquiry_logs():
-    return "Inquiry Logs page under construction"
+    # Get filter parameters
+    filter_type = request.args.get('filter_type', 'all')
+    search_query = request.args.get('search', '')
+    
+    # Base queries for different log types
+    inquiry_activities = db.session.query(
+        Inquiry, User, Office
+    ).join(
+        Student, Inquiry.student_id == Student.id
+    ).join(
+        User, Student.user_id == User.id
+    ).join(
+        Office, Inquiry.office_id == Office.id
+    ).order_by(Inquiry.created_at.desc())
+    
+    # Filter by search query if provided
+    if search_query:
+        inquiry_activities = inquiry_activities.filter(
+            or_(
+                User.first_name.ilike(f'%{search_query}%'),
+                User.last_name.ilike(f'%{search_query}%'),
+                User.email.ilike(f'%{search_query}%'),
+                Office.name.ilike(f'%{search_query}%'),
+                Inquiry.subject.ilike(f'%{search_query}%')
+            )
+        )
+    
+    # Apply filter based on type
+    if filter_type == 'student':
+        # Get students with inquiry statistics
+        students = db.session.query(
+            User,
+            Student,
+            func.count(Inquiry.id).label('total_inquiries'),
+            func.sum(case((Inquiry.status == 'pending', 1), else_=0)).label('active_inquiries'),
+            func.count(CounselingSession.id).label('counseling_sessions')
+        ).join(
+            Student, User.id == Student.user_id
+        ).outerjoin(
+            Inquiry, Student.id == Inquiry.student_id
+        ).outerjoin(
+            CounselingSession, Student.id == CounselingSession.student_id
+        ).group_by(
+            User.id, Student.id
+        ).all()
+        
+        # Fixed template path
+        return render_template('admin/inquiry_logs.html', 
+                              students=students, 
+                              filter_type=filter_type,
+                              search_query=search_query,
+                              view_type='student')  # Added a view_type parameter
+    
+    elif filter_type == 'office':
+        # Get office activity statistics
+        offices = db.session.query(
+            Office,
+            func.count(Inquiry.id).label('total_inquiries'),
+            func.sum(case((Inquiry.status == 'pending', 1), else_=0)).label('pending_inquiries'),
+            func.sum(case((Inquiry.status == 'resolved', 1), else_=0)).label('resolved_inquiries'),
+            func.count(CounselingSession.id).label('counseling_sessions')
+        ).outerjoin(
+            Inquiry, Office.id == Inquiry.office_id
+        ).outerjoin(
+            CounselingSession, Office.id == CounselingSession.office_id
+        ).group_by(
+            Office.id
+        ).all()
+        
+        # Fixed template path
+        return render_template('admin/inquiry_logs.html', 
+                              offices=offices, 
+                              filter_type=filter_type,
+                              search_query=search_query,
+                              view_type='office')  # Added a view_type parameter
+    
+    else:  # 'all' or default view - inquiry activity logs
+        # Get the inquiry activity logs
+        inquiry_logs = []
+        
+        # Get initial inquiry submissions
+        inquiries = inquiry_activities.all()
+        for inquiry, user, office in inquiries:
+            log_entry = {
+                'id': inquiry.id,
+                'user': f"{user.first_name} {user.last_name}",
+                'user_role': 'Student',
+                'action': 'Submitted Inquiry',
+                'office': office.name,
+                'status': inquiry.status,
+                'date': inquiry.created_at,
+                'subject': inquiry.subject
+            }
+            inquiry_logs.append(log_entry)
+        
+        # Get inquiry message activities
+        messages = db.session.query(
+            InquiryMessage, User, Inquiry, Office
+        ).join(
+            User, InquiryMessage.sender_id == User.id
+        ).join(
+            Inquiry, InquiryMessage.inquiry_id == Inquiry.id
+        ).join(
+            Office, Inquiry.office_id == Office.id
+        ).order_by(
+            InquiryMessage.created_at.desc()
+        ).all()
+        
+        for message, user, inquiry, office in messages:
+            # Determine user role
+            if user.role == 'student':
+                action = 'Sent Response'
+                user_role = 'Student'
+            else:
+                action = 'Replied to Inquiry'
+                user_role = 'Office Admin'
+                
+            log_entry = {
+                'id': inquiry.id,
+                'message_id': message.id,
+                'user': f"{user.first_name} {user.last_name}",
+                'user_role': user_role,
+                'action': action,
+                'office': office.name,
+                'status': inquiry.status,
+                'date': message.created_at,
+                'subject': inquiry.subject
+            }
+            inquiry_logs.append(log_entry)
+        
+        # Sort all logs by date (newest first)
+        inquiry_logs.sort(key=lambda x: x['date'], reverse=True)
+        
+        return render_template('admin/inquiry_logs.html', 
+                              inquiry_logs=inquiry_logs, 
+                              filter_type=filter_type,
+                              search_query=search_query,
+                              view_type='all')  # Added a view_type parameter
 
 @admin_bp.route('/announcement')
 def announcement():

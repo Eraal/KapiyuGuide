@@ -40,7 +40,7 @@ def create_app():
     def load_user(user_id):
         return User.query.get(int(user_id))
     
-    # Make current_user available in all templates
+
     @app.context_processor
     def inject_user():
         return dict(current_user=current_user)

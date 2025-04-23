@@ -32,6 +32,31 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initial call and resize listener
     handleResponsiveImages();
     window.addEventListener('resize', handleResponsiveImages);
+
+    const flashMessages = document.querySelectorAll('.flash-message');
+if (flashMessages.length > 0) {
+    flashMessages.forEach(message => {
+        // Auto-dismiss flash messages after 5 seconds
+        setTimeout(() => {
+            message.style.opacity = '0';
+            setTimeout(() => {
+                message.remove();
+            }, 500);
+        }, 5000);
+        
+        // Add close button functionality
+        const closeBtn = message.querySelector('.close-flash');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                message.style.opacity = '0';
+                setTimeout(() => {
+                    message.remove();
+                }, 500);
+            });
+        }
+    });
+}
     
     // Form validation is handled in the index.html file
 });
+

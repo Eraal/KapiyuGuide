@@ -1,0 +1,352 @@
+{% extends "admin/adminbase.html" %}
+
+{% block content %}
+<div class="flex items-center mb-6">
+    <i class="fas fa-th-large mr-2 text-blue-800"></i>
+    <h2 class="text-xl font-bold">Super Admin — Manage Students</h2>
+</div>
+<div>
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="mb-4 p-4 rounded-md {{ 'bg-green-100 text-green-800' if category == 'success' else 'bg-red-100 text-red-800' }} flex justify-between items-center">
+            <span>{{ message }}</span>
+            <button type="button" class="text-gray-500 hover:text-gray-700 focus:outline-none" onclick="this.parentElement.style.display='none'">
+              <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+              </svg>
+            </button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <!-- Quick Stats Cards -->
+    <div class="rounded-lg p-6 mb-6 shadow-md bg-[url('{{ url_for('static', filename='images/backgroundlanding.png') }}')] bg-cover bg-center bg-no-repeat bg-blend-overlay">
+        <h2 class="text-xl font-bold text-white mb-4">QUICK STATS</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- Total Registered Students -->
+            <div class="bg-white p-4 rounded-md shadow flex items-center justify-between">
+                <div>
+                    <h3 class="text-sm font-medium text-gray-600">TOTAL REGISTERED STUDENT</h3>
+                    <p class="text-2xl font-bold">{{ total_students }}</p>
+                </div>
+                <div class="bg-blue-100 p-2 rounded-full">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                </div>
+            </div>
+            
+            <!-- Active Students -->
+            <div class="bg-white p-4 rounded-md shadow flex items-center justify-between">
+                <div>
+                    <h3 class="text-sm font-medium text-gray-600">ACTIVE STUDENT</h3>
+                    <p class="text-2xl font-bold">{{ active_students }}</p>
+                </div>
+                <div class="bg-green-100 p-2 rounded-full">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+            </div>
+            
+            <!-- Inactive Students -->
+            <div class="bg-white p-4 rounded-md shadow flex items-center justify-between">
+                <div>
+                    <h3 class="text-sm font-medium text-gray-600">INACTIVE STUDENT</h3>
+                    <p class="text-2xl font-bold">{{ inactive_students }}</p>
+                </div>
+                <div class="bg-red-100 p-2 rounded-full">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+            </div>
+            
+            <!-- Recently Registered -->
+            <div class="bg-white p-4 rounded-md shadow flex items-center justify-between">
+                <div>
+                    <h3 class="text-sm font-medium text-gray-600">RECENTLY REGISTERED</h3>
+                    <p class="text-2xl font-bold">{{ recently_registered }}</p>
+                </div>
+                <div class="bg-purple-100 p-2 rounded-full">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Student List Table -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="font-bold text-gray-700 mb-4">STUDENT LIST TABLE</h2>
+        
+        <!-- Search and Filter Controls -->
+        <div class="flex flex-col md:flex-row justify-between mb-4">
+            <div class="md:w-1/3 mb-4 md:mb-0">
+                <div class="relative">
+                    <input type="text" id="searchInput" placeholder="Search......" class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex space-x-2">
+                <div class="relative">
+                    <select id="statusFilter" class="appearance-none pl-3 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Status</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </div>
+                </div>
+                
+                <div class="relative">
+                    <select id="sortBy" class="appearance-none pl-3 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Sort by</option>
+                        <option value="name">Name</option>
+                        <option value="email">Email</option>
+                        <option value="date_registered">Date Registered</option>
+                    </select>
+                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Table -->
+        <div class="overflow-x-auto">
+            <table class="min-w-full bg-white">
+                <thead class="bg-gray-100">
+                    <tr>
+                        <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
+                        <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">FULL NAME</th>
+                        <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">EMAIL</th>
+                        <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">STATUS</th>
+                        <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">LAST LOGIN</th>
+                        <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">REGISTERED DATE</th>
+                        <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ACTION</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200" id="studentTableBody">
+                    {% for student in students %}
+                    <tr>
+                        <td class="py-4 px-4 whitespace-nowrap">{{ loop.index }}</td>
+                        <td class="py-4 px-4 whitespace-nowrap">
+                            {{ student.user.first_name }} {% if student.user.middle_name %}{{ student.user.middle_name[0] }}. {% endif %}{{ student.user.last_name }}
+                        </td>
+                        <td class="py-4 px-4 whitespace-nowrap">{{ student.user.email }}</td>
+                        <td class="py-4 px-4 whitespace-nowrap">
+                            {% if student.user.is_active %}
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Active</span>
+                            {% else %}
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-4 px-4 whitespace-nowrap">
+                            {% if student.last_login %}
+                                {{ student.last_login.strftime('%B %d, %Y %I:%M %p') }}
+                            {% else %}
+                                Never
+                            {% endif %}
+                        </td>
+                        <td class="py-4 px-4 whitespace-nowrap">
+                            {{ student.user.created_at.strftime('%B %d, %Y %I:%M %p') }}
+                        </td>
+                        <td class="py-4 px-4 whitespace-nowrap flex space-x-2">
+                            <a href="{{ url_for('admin.view_student', student_id=student.id) }}" class="bg-green-500 hover:bg-green-600 text-white text-xs px-3 py-1 rounded">EDIT</a>
+                            <button onclick="toggleStudentStatus({{ student.id }}, {{ 0 if student.user.is_active else 1 }})" 
+                                class="{% if student.user.is_active %}bg-red-500 hover:bg-red-600{% else %}bg-blue-500 hover:bg-blue-600{% endif %} text-white text-xs px-3 py-1 rounded">
+                                {% if student.user.is_active %}DEACTIVATE{% else %}ACTIVATE{% endif %}
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination controls can be added here -->
+        <div class="mt-4 flex justify-between items-center">
+            <div>
+                <p class="text-sm text-gray-700">
+                    Showing <span class="font-medium">1</span> to <span class="font-medium">{{ students|length }}</span> of <span class="font-medium">{{ total_students }}</span> results
+                </p>
+            </div>
+            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                    <span class="sr-only">Previous</span>
+                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                    </svg>
+                </a>
+                <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">1</a>
+                <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                    <span class="sr-only">Next</span>
+                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                    </svg>
+                </a>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Search functionality
+    document.getElementById('searchInput').addEventListener('keyup', function() {
+        const searchText = this.value.toLowerCase();
+        const table = document.getElementById('studentTableBody');
+        const rows = table.getElementsByTagName('tr');
+        
+        for (let i = 0; i < rows.length; i++) {
+            const nameCell = rows[i].getElementsByTagName('td')[1];
+            const emailCell = rows[i].getElementsByTagName('td')[2];
+            
+            if (nameCell && emailCell) {
+                const name = nameCell.textContent.toLowerCase();
+                const email = emailCell.textContent.toLowerCase();
+                
+                if (name.includes(searchText) || email.includes(searchText)) {
+                    rows[i].style.display = '';
+                } else {
+                    rows[i].style.display = 'none';
+                }
+            }
+        }
+    });
+    
+    // Status filter
+    document.getElementById('statusFilter').addEventListener('change', function() {
+        const filterValue = this.value.toLowerCase();
+        const table = document.getElementById('studentTableBody');
+        const rows = table.getElementsByTagName('tr');
+        
+        for (let i = 0; i < rows.length; i++) {
+            const statusCell = rows[i].getElementsByTagName('td')[3];
+            
+            if (statusCell) {
+                const status = statusCell.textContent.toLowerCase();
+                
+                if (filterValue === '' || status.includes(filterValue)) {
+                    rows[i].style.display = '';
+                } else {
+                    rows[i].style.display = 'none';
+                }
+            }
+        }
+    });
+    
+    // Sort functionality
+    document.getElementById('sortBy').addEventListener('change', function() {
+        const sortBy = this.value;
+        const table = document.getElementById('studentTableBody');
+        const rows = Array.from(table.getElementsByTagName('tr'));
+        
+        if (sortBy === '') return;
+        
+        rows.sort((a, b) => {
+            let aValue, bValue;
+            
+            if (sortBy === 'name') {
+                aValue = a.getElementsByTagName('td')[1].textContent.toLowerCase();
+                bValue = b.getElementsByTagName('td')[1].textContent.toLowerCase();
+            } else if (sortBy === 'email') {
+                aValue = a.getElementsByTagName('td')[2].textContent.toLowerCase();
+                bValue = b.getElementsByTagName('td')[2].textContent.toLowerCase();
+            } else if (sortBy === 'date_registered') {
+                aValue = new Date(a.getElementsByTagName('td')[5].textContent);
+                bValue = new Date(b.getElementsByTagName('td')[5].textContent);
+            }
+            
+            if (aValue < bValue) return -1;
+            if (aValue > bValue) return 1;
+            return 0;
+        });
+        
+        // Remove all existing rows
+        while (table.firstChild) {
+            table.removeChild(table.firstChild);
+        }
+        
+        // Add sorted rows
+        rows.forEach(row => table.appendChild(row));
+    });
+    
+    // Function to toggle student active status
+    function toggleStudentStatus(studentId, newStatus) {
+        if (!confirm('Are you sure you want to ' + (newStatus ? 'activate' : 'deactivate') + ' this student account?')) {
+            return;
+        }
+        
+        fetch('/admin/toggle_student_status', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                student_id: studentId,
+                is_active: newStatus
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Reload page to show updated status
+                window.location.reload();
+            } else {
+                // Create a flash-like message instead of alert
+                const flashContainer = document.createElement('div');
+                flashContainer.className = 'mb-4 p-4 rounded-md bg-red-100 text-red-800 flex justify-between items-center';
+                
+                const messageSpan = document.createElement('span');
+                messageSpan.textContent = 'Error: ' + data.message;
+                flashContainer.appendChild(messageSpan);
+                
+                const closeButton = document.createElement('button');
+                closeButton.className = 'text-gray-500 hover:text-gray-700 focus:outline-none';
+                closeButton.innerHTML = '<svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>';
+                closeButton.onclick = function() {
+                    this.parentElement.style.display = 'none';
+                };
+                flashContainer.appendChild(closeButton);
+                
+                // Insert at the top of the content
+                const content = document.querySelector('.bg-white.rounded-lg.shadow-md.p-6');
+                content.parentNode.insertBefore(flashContainer, content);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            // Create a flash-like message instead of alert
+            const flashContainer = document.createElement('div');
+            flashContainer.className = 'mb-4 p-4 rounded-md bg-red-100 text-red-800 flex justify-between items-center';
+            flashContainer.innerHTML = `
+                <span>An unexpected error occurred. Please try again.</span>
+                <button type="button" class="text-gray-500 hover:text-gray-700 focus:outline-none" onclick="this.parentElement.style.display='none'">
+                    <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                    </svg>
+                </button>
+            `;
+            
+            // Insert at the top of the content
+            const content = document.querySelector('.bg-white.rounded-lg.shadow-md.p-6');
+            content.parentNode.insertBefore(flashContainer, content);
+        });
+    }
+</script>
+{% endblock %}

@@ -3,9 +3,41 @@
 {% block title %}KapiyuGuide Admin Dashboard{% endblock %}
 
 {% block content %}
+<style>
+    @keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+#passwordResetMessage {
+    animation: slideInRight 0.3s ease-out forwards;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+#passwordResetMessage.closing {
+    animation: slideOutRight 0.3s ease-in forwards;
+}
+</style>
     <div class="flex items-center mb-6">
         <i class="fas fa-th-large mr-2 text-blue-800"></i>
-        <h2 class="text-xl font-bold">Super Admin Dashboard — Manage Admins / Offices</h2>
+        <h2 class="text-xl font-bold">Super Admin — Manage Admins</h2>
     </div>
 
     <!-- Quick Stats Cards -->
@@ -327,7 +359,7 @@
     </div>
 </div>
 
-    <!-- Edit Admin Modal -->
+ <!-- Edit Admin Modal -->
 <div id="editAdminModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50">
     <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-4/5 lg:w-1/2 shadow-lg rounded-md bg-white">
         <div class="mt-3">
@@ -339,7 +371,7 @@
             </div>
             
             <!-- Edit Admin Form -->
-            <form id="editAdminForm" action="/admin/update_admin" method="post">
+            <form id="editAdminForm" action="/admin/update_admin" method="post" enctype="multipart/form-data">
                 <input type="hidden" id="edit_admin_id" name="admin_id">
                 
                 <div class="space-y-4 mt-4">
@@ -363,14 +395,37 @@
                         <input type="email" id="edit_email" name="email" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" required>
                     </div>
                     
+                    <!-- Profile Picture Edit - Fixed to prevent infinite loop -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Profile Picture</label>
+                        <div class="flex items-center space-x-4">
+                            <div id="current_profile_pic" class="h-16 w-16 rounded-full overflow-hidden bg-gray-100">
+                                <!-- Added a static default image source and fixed the onerror handler -->
+                                <img id="edit_profile_preview" src="" alt="Profile" class="h-full w-full object-cover" 
+                                     onerror="if(this.src !== '/static/images/default.jpg') this.src='/static/images/default.jpg'">
+                            </div>
+                            <input type="file" id="edit_profile_pic" name="profile_pic" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" accept="image/*">
+                        </div>
+                    </div>
+                    
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Office*</label>
                         <select id="edit_office" name="office_id" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" required>
                             <option value="">Select Office</option>
                             {% for office in offices %}
-                            <option value="{{ office.id }}">---  {{ office.name }}   ---</option>
+                            <option value="{{ office.id }}">{{ office.name }}</option>
                             {% endfor %}
                         </select>
+                    </div>
+                    
+                    <!-- Password Reset Section -->
+                    <div>
+                        <div class="flex items-center justify-between">
+                            <label class="block text-sm font-medium text-gray-700">Password Management</label>
+                            <button type="button" id="resetPasswordBtn" class="text-sm text-blue-600 hover:text-blue-800" onclick="resetAdminPassword()">
+                                Reset to Default Password
+                            </button>
+                        </div>
                     </div>
                     
                     <div>
@@ -396,7 +451,6 @@
         </div>
     </div>
 </div>
-
 <!-- View Office Modal -->
 <div id="viewOfficeModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50">
     <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">

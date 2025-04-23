@@ -306,6 +306,12 @@ function openEditAdminModal(adminId) {
                 document.getElementById('edit_middle_name').value = admin.middle_name || '';
                 document.getElementById('edit_last_name').value = admin.last_name || '';
                 document.getElementById('edit_email').value = admin.email || '';
+
+                if (admin.profile_pic) {
+                    document.getElementById('edit_profile_preview').src = `/static/${admin.profile_pic}`;
+                } else {
+                    document.getElementById('edit_profile_preview').src = '/static/images/default-avatar.png';
+                }
                 
                 if (admin.office_id) {
                     document.getElementById('edit_office').value = admin.office_id;
@@ -315,6 +321,14 @@ function openEditAdminModal(adminId) {
                     document.getElementById('edit_active').checked = true;
                 } else {
                     document.getElementById('edit_inactive').checked = true;
+                }
+
+                // Handle profile picture preview - with fixed image handling
+                const profilePreview = document.getElementById('edit_profile_preview');
+                if (admin.profile_pic) {
+                    profilePreview.src = `/static/${admin.profile_pic}`;
+                } else {
+                    profilePreview.src = '/static/images/default.jpg';
                 }
                 
                 document.getElementById('editAdminModal').classList.remove('hidden');
@@ -327,6 +341,138 @@ function openEditAdminModal(adminId) {
             showNotification('An error occurred while fetching admin data', 'error');
         });
 }
+
+function resetAdminPassword() {
+    const adminId = document.getElementById('edit_admin_id').value;
+    
+    if (!adminId) {
+        showPasswordResetMessage('No admin selected', false);
+        return;
+    }
+    
+    if (!confirm('Are you sure you want to reset this admin\'s password to a default 4-digit code?')) {
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('admin_id', adminId);
+    
+    fetch('/admin/reset_admin_password', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showPasswordResetMessage(`Password reset successfully. New password:`, true, data.password);
+        } else {
+            showPasswordResetMessage(data.message, false);
+        }
+    })
+    .catch(error => {
+        console.error('Error resetting password:', error);
+        showPasswordResetMessage('Error resetting password. Please try again.', false);
+    });
+}
+
+function showPasswordResetMessage(message, success, password = null) {
+    // Remove any existing message
+    const existingMessage = document.getElementById('passwordResetMessage');
+    if (existingMessage) {
+        existingMessage.remove();
+    }
+    
+    // Create flash message container
+    const flashMessage = document.createElement('div');
+    flashMessage.id = 'passwordResetMessage';
+    flashMessage.className = success 
+        ? 'fixed top-4 right-4 bg-white shadow-lg rounded-lg p-4 max-w-sm w-full flex flex-col items-center border-l-4 border-green-500 z-50'
+        : 'fixed top-4 right-4 bg-white shadow-lg rounded-lg p-4 max-w-sm w-full flex flex-col items-center border-l-4 border-red-500 z-50';
+    
+    // Create message content
+    const messageContent = document.createElement('div');
+    messageContent.className = 'w-full';
+    
+    // Add header
+    const header = document.createElement('div');
+    header.className = 'flex justify-between items-center mb-2';
+    
+    const title = document.createElement('h3');
+    title.className = success ? 'font-medium text-green-700' : 'font-medium text-red-700';
+    title.textContent = success ? 'Success' : 'Error';
+    
+    const closeButton = document.createElement('button');
+    closeButton.className = 'text-gray-400 hover:text-gray-600';
+    closeButton.innerHTML = '<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" fill-rule="evenodd"></path></svg>';
+    closeButton.onclick = function() {
+        document.getElementById('passwordResetMessage').remove();
+    };
+    
+    header.appendChild(title);
+    header.appendChild(closeButton);
+    messageContent.appendChild(header);
+    
+    // Add message
+    const messageText = document.createElement('p');
+    messageText.className = 'text-sm text-gray-600 mb-2';
+    messageText.textContent = message;
+    messageContent.appendChild(messageText);
+    
+    // Add password display if provided
+    if (password) {
+        const passwordContainer = document.createElement('div');
+        passwordContainer.className = 'bg-gray-50 p-4 rounded-md flex justify-center items-center my-2';
+        
+        const digits = password.split('');
+        digits.forEach(digit => {
+            const digitBox = document.createElement('div');
+            digitBox.className = 'w-12 h-16 bg-white border border-gray-300 rounded-md mx-1 flex items-center justify-center text-2xl font-bold text-gray-800';
+            digitBox.textContent = digit;
+            passwordContainer.appendChild(digitBox);
+        });
+        
+        messageContent.appendChild(passwordContainer);
+        
+        // Add copy button
+        const copyButton = document.createElement('button');
+        copyButton.className = 'w-full mt-2 bg-blue-500 hover:bg-blue-600 text-white text-sm py-2 px-4 rounded transition duration-300';
+        copyButton.textContent = 'Copy Password';
+        copyButton.onclick = function() {
+            navigator.clipboard.writeText(password).then(() => {
+                copyButton.textContent = 'Copied!';
+                setTimeout(() => {
+                    copyButton.textContent = 'Copy Password';
+                }, 2000);
+            });
+        };
+        messageContent.appendChild(copyButton);
+    }
+    
+    flashMessage.appendChild(messageContent);
+    document.body.appendChild(flashMessage);
+    
+    // Auto-dismiss after 10 seconds if it's a success message
+    if (success) {
+        setTimeout(() => {
+            const message = document.getElementById('passwordResetMessage');
+            if (message) {
+                message.remove();
+            }
+        }, 10000);
+    }
+}
+
+// Update preview when new profile image is selected
+document.getElementById('edit_profile_pic').addEventListener('change', function(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('edit_profile_preview').src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+});
 
 function closeEditAdminModal() {
     document.getElementById('editAdminModal').classList.add('hidden');
