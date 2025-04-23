@@ -1,0 +1,264 @@
+{% extends "admin/adminbase.html" %}
+
+{% block title %}Inquiry Logs | KapiyuGuide Admin{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow-md p-6">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">Audit Trails</h1>
+        <div class="flex space-x-2">
+            <a href="{{ url_for('admin.inquiry_logs', filter_type='all') }}" 
+                class="px-4 py-2 rounded {{ 'bg-blue-600 text-white' if filter_type == 'all' else 'bg-gray-200 text-gray-800' }}">
+                All Activities
+            </a>
+            <a href="{{ url_for('admin.inquiry_logs', filter_type='student') }}" 
+                class="px-4 py-2 rounded {{ 'bg-blue-600 text-white' if filter_type == 'student' else 'bg-gray-200 text-gray-800' }}">
+                Student View
+            </a>
+            <a href="{{ url_for('admin.inquiry_logs', filter_type='office') }}" 
+                class="px-4 py-2 rounded {{ 'bg-blue-600 text-white' if filter_type == 'office' else 'bg-gray-200 text-gray-800' }}">
+                Office View
+            </a>
+        </div>
+    </div>
+
+    <!-- Search and filter bar -->
+    <div class="flex flex-wrap justify-between items-center mb-6">
+        <form method="get" class="flex w-full md:w-auto">
+            <input type="hidden" name="filter_type" value="{{ filter_type }}">
+            <div class="relative flex-grow max-w-xl">
+                <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <i class="fas fa-search text-gray-400"></i>
+                </div>
+                <input type="text" name="search" id="search" value="{{ search_query }}"
+                    class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white 
+                    placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:border-blue-300 
+                    focus:shadow-outline-blue sm:text-sm" 
+                    placeholder="Search logs...">
+            </div>
+            <button type="submit" 
+                class="ml-3 px-4 py-2 border border-transparent text-sm leading-5 font-medium rounded-md 
+                text-white bg-blue-600 hover:bg-blue-500 focus:outline-none focus:border-blue-700 
+                focus:shadow-outline-blue active:bg-blue-700">
+                Search
+            </button>
+        </form>
+
+        <div class="flex items-center mt-4 md:mt-0">
+            <span class="mr-2 text-sm text-gray-600">Export:</span>
+            <button onclick="exportToCsv()" class="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600">
+                <i class="fas fa-file-csv mr-1"></i> CSV
+            </button>
+            <button onclick="printLogs()" class="ml-2 px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-700">
+                <i class="fas fa-print mr-1"></i> Print
+            </button>
+        </div>
+    </div>
+
+    <!-- STUDENT VIEW -->
+    {% if view_type == 'student' %}
+    <div class="overflow-x-auto border rounded-lg">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID Number</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Inquiries</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Active Inquiries</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Counseling Sessions</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for user, student, total_inquiries, active_inquiries, counseling_sessions in students %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">{{ user.first_name }} {{ user.last_name }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ student.id_number }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ user.email }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ total_inquiries }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                            {% if active_inquiries > 0 %}bg-yellow-100 text-yellow-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {{ active_inquiries }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ counseling_sessions }}</td>
+                    <!-- <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <a href="{{ url_for('admin.view_student', student_id=student.id) }}" class="text-blue-600 hover:text-blue-900">
+                            <i class="fas fa-eye"></i> View Profile
+                        </a>
+                    </td> -->
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="px-6 py-4 text-center text-sm text-gray-500">No student data found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- OFFICE VIEW -->
+    {% elif view_type == 'office' %}
+    <div class="overflow-x-auto border rounded-lg">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Office</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Inquiries</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pending</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Resolved</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Counseling Sessions</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for office, total_inquiries, pending_inquiries, resolved_inquiries, counseling_sessions in offices %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">{{ office.name }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ total_inquiries }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                            {% if pending_inquiries > 0 %}bg-yellow-100 text-yellow-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {{ pending_inquiries }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                            {% if resolved_inquiries > 0 %}bg-green-100 text-green-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {{ resolved_inquiries }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ counseling_sessions }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <a href="{{ url_for('admin.view_office', office_id=office.id) }}" class="text-blue-600 hover:text-blue-900">
+                            <i class="fas fa-eye"></i> View Details
+                        </a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">No office data found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- DEFAULT - ACTIVITY LOGS VIEW -->
+    {% else %}
+    <div class="overflow-x-auto border rounded-lg">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Office</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Details</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for log in inquiry_logs %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ log.id }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">{{ log.user }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                            {% if log.user_role == 'Student' %}bg-blue-100 text-blue-800
+                            {% elif log.user_role == 'Office Admin' %}bg-green-100 text-green-800
+                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {{ log.user_role }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ log.action }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ log.office }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                            {% if log.status == 'pending' %}bg-yellow-100 text-yellow-800
+                            {% elif log.status == 'resolved' %}bg-green-100 text-green-800
+                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {{ log.status|title }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ log.date.strftime('%b %d, %Y %H:%M') }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <a href="{{ url_for('admin.view_inquiry_detail', inquiry_id=log.id) }}" class="text-blue-600 hover:text-blue-900">
+                            <i class="fas fa-eye"></i> View
+                        </a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8" class="px-6 py-4 text-center text-sm text-gray-500">No logs found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function exportToCsv() {
+        // Create CSV content based on current view
+        let csvContent = "data:text/csv;charset=utf-8,";
+        
+        {% if view_type == 'student' %}
+        // Student view CSV export
+        csvContent += "Student,ID Number,Email,Total Inquiries,Active Inquiries,Counseling Sessions\n";
+        
+        {% for user, student, total_inquiries, active_inquiries, counseling_sessions in students %}
+        csvContent += "\"{{ user.first_name }} {{ user.last_name }}\"," + 
+                    "\"{{ student.id_number }}\",\"{{ user.email }}\"," +
+                    "{{ total_inquiries }},{{ active_inquiries }},{{ counseling_sessions }}\n";
+        {% endfor %}
+        
+        {% elif view_type == 'office' %}
+        // Office view CSV export
+        csvContent += "Office,Total Inquiries,Pending Inquiries,Resolved Inquiries,Counseling Sessions\n";
+        
+        {% for office, total_inquiries, pending_inquiries, resolved_inquiries, counseling_sessions in offices %}
+        csvContent += "\"{{ office.name }}\"," + 
+                    "{{ total_inquiries }},{{ pending_inquiries }},{{ resolved_inquiries }},{{ counseling_sessions }}\n";
+        {% endfor %}
+        
+        {% else %}
+        // Activity logs CSV export
+        csvContent += "ID,User,Role,Action,Office,Status,Date,Subject\n";
+        
+        {% for log in inquiry_logs %}
+        csvContent += "{{ log.id }}," + 
+                    "\"{{ log.user }}\",\"{{ log.user_role }}\",\"{{ log.action }}\",\"{{ log.office }}\"," +
+                    "\"{{ log.status }}\",\"{{ log.date.strftime('%Y-%m-%d %H:%M:%S') }}\",\"{{ log.subject }}\"\n";
+        {% endfor %}
+        {% endif %}
+        
+        // Create download link
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "inquiry_logs_{{ filter_type }}_{{ search_query }}.csv");
+        document.body.appendChild(link);
+        
+        // Download CSV file
+        link.click();
+    }
+    
+    function printLogs() {
+        window.print();
+    }
+</script>
+{% endblock %}

@@ -65,16 +65,16 @@ def register():
         
         # Create new user
         try:
-            # Create user record
+           ###### PROBABLY THE ERROR POTENTIAL BECAUSE THERE IS NO TABLE COLUMN CALLED NAME 
             new_user = User(
                 name=f"{first_name} {last_name}",
                 email=email,
                 password_hash=generate_password_hash(password),
-                role='student'  # Default role for registration
+                role='student'  
             )
             
             db.session.add(new_user)
-            db.session.flush()  # This gets the ID for the new user
+            db.session.flush()  
             
            
             new_student = Student(

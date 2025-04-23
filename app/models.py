@@ -63,7 +63,7 @@ class Inquiry(db.Model):
     student_id = db.Column(db.Integer, db.ForeignKey('students.id', ondelete='CASCADE'), nullable=False)
     office_id = db.Column(db.Integer, db.ForeignKey('offices.id', ondelete='CASCADE'), nullable=False)
     subject = db.Column(db.String(255), nullable=False)
-    status = db.Column(db.String(50), default='open')
+    status = db.Column(db.String(50), default='pending')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     student = db.relationship('Student', back_populates='inquiries')
@@ -79,6 +79,9 @@ class InquiryMessage(db.Model):
     content = db.Column(db.Text, nullable=False)
     status = db.Column(db.String(50), default='sent')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    delivered_at = db.Column(db.DateTime)  # Optional: timestamp when message was delivered
+    read_at = db.Column(db.DateTime)       # Optional: timestamp when message was read
 
     inquiry = db.relationship('Inquiry', back_populates='messages')
     sender = db.relationship('User', back_populates='inquiry_messages')
