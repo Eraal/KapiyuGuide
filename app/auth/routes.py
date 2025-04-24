@@ -1,8 +1,10 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, session, request
 from werkzeug.security import check_password_hash, generate_password_hash  
-from app.extensions import db  
+from flask_login import login_user, logout_user, login_required
 from app.models import User, Student  
-from flask_login import login_user, logout_user
+from app.extensions import db  
+
+
 
 auth_bp = Blueprint('auth', __name__, template_folder='../templates') 
 
@@ -48,53 +50,49 @@ def register():
         password = request.form.get('password')
         confirm_password = request.form.get('confirm_password')
         
-        # Basic validation
         if not first_name or not last_name or not email or not password:
-            flash('All fields are required', 'danger')
-            return render_template('auth/register.html')  # Fixed path
+            flash('All fields are required', 'error')
+            return redirect(url_for('auth.register'))
+        
+        if not email.endswith('@lspu.edu.ph'):
+            flash('Registration is only allowed for LSPU students with @lspu.edu.ph email address', 'error')
+            return redirect(url_for('auth.register'))
+        
+        user = User.query.filter_by(email=email).first()
+        if user:
+            flash('Email address already exists', 'error')
+            return redirect(url_for('auth.register'))
         
         if password != confirm_password:
-            flash('Passwords do not match', 'danger')
-            return render_template('auth/register.html')  # Fixed path
+            flash('Passwords do not match', 'error')
+            return redirect(url_for('auth.register'))
         
-        # Check if email already exists
-        existing_user = User.query.filter_by(email=email).first()
-        if existing_user:
-            flash('Email already registered', 'danger')
-            return render_template('auth/register.html')  # Fixed path
+        new_user = User(
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            role='student',  
+            password_hash=generate_password_hash(password, method='pbkdf2:sha256'),
+            is_active=True
+        )
         
-        # Create new user
         try:
-           ###### PROBABLY THE ERROR POTENTIAL BECAUSE THERE IS NO TABLE COLUMN CALLED NAME 
-            new_user = User(
-                name=f"{first_name} {last_name}",
-                email=email,
-                password_hash=generate_password_hash(password),
-                role='student'  
-            )
-            
             db.session.add(new_user)
             db.session.flush()  
             
-           
-            new_student = Student(
-                user_id=new_user.id,
-                student_number=None  
-            )
+            student = Student(user_id=new_user.id)
+            db.session.add(student)
             
-            db.session.add(new_student)
             db.session.commit()
-            
-            flash('Registration successful! Please log in.', 'success')
+            flash('Registration successful! You can now log in', 'success')
             return redirect(url_for('auth.login'))
-            
         except Exception as e:
             db.session.rollback()
-            flash(f'An error occurred during registration: {str(e)}', 'danger')
-            return render_template('auth/register.html')  # Fixed path
+            print(f"Error during registration: {e}")  
+            flash('An error occurred. Please try again.', 'error')
+            return redirect(url_for('auth.register'))
     
-    # For GET requests, render the registration form
-    return render_template('auth/register.html')  # Fixed path
+    return render_template('auth/register.html')
 
 
 @auth_bp.route('/logout')
