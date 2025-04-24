@@ -24,7 +24,7 @@ def create_app():
     
     from .auth.routes import auth_bp
     from .main.routes import main_bp
-    from .admin.routes import admin_bp
+    from .admin import admin_bp
     from .office.routes import office_bp
     from .student.routes import student_bp
     
