@@ -1,0 +1,56 @@
+body {
+  font-family: 'Poppins', sans-serif;
+}
+
+.font-marcellus {
+  font-family: 'Marcellus SC', serif;
+}
+
+.text-stroke {
+  -webkit-text-stroke: 1px white;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+@media (max-width: 640px) {
+  .text-stroke {
+      -webkit-text-stroke: 0.5px white;
+  }
+  
+  .h-screen {
+      height: 90vh; 
+  }
+}
+
+
+html {
+  scroll-behavior: smooth;
+}
+
+
+.w-50 {
+  width: 12.5rem;
+}
+
+.w-65 {
+  width: 16.25rem;
+}
+
+.w-70 {
+  width: 17.5rem;
+}
+
+
+.scale-101 {
+  transform: scale(1.01);
+}
+
+.bg-white.rounded-lg {
+  transition: all 0.2s ease-in-out;
+}
+
+.bg-blue-800 {
+  background-color: #2A4E92;
+}
+.contact-button:hover {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
