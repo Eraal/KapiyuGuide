@@ -22,19 +22,15 @@ def student_manage():
         flash('Access denied. You do not have permission to view this page.', 'danger')
         return redirect(url_for('main.index'))
     
-    # Query all students with their user information
     students = Student.query.join(User).all()
     
-    # Calculate statistics
     total_students = Student.query.count()
     active_students = Student.query.join(User).filter(User.is_active == True).count()
     inactive_students = total_students - active_students
-    
-    # Calculate recently registered (last 7 days)
+
     seven_days_ago = datetime.utcnow() - timedelta(days=7)
     recently_registered = Student.query.join(User).filter(User.created_at >= seven_days_ago).count()
     
-    # Make sure the file is named 'studentmanage.html' to match what's in your error
     return render_template('admin/studentmanage.html',
                            students=students,
                            total_students=total_students,
@@ -56,7 +52,6 @@ def toggle_student_status():
         return jsonify({'success': False, 'message': 'Missing required data'}), 400
     
     try:
-        # Find the student and update the associated user's active status
         student = Student.query.get(student_id)
         if not student:
             return jsonify({'success': False, 'message': 'Student not found'}), 404
@@ -86,21 +81,19 @@ def view_student(student_id):
     
     if request.method == 'POST':
         try:
-            # Update user information
             student.user.first_name = request.form.get('first_name')
             student.user.middle_name = request.form.get('middle_name')
             student.user.last_name = request.form.get('last_name')
             student.user.email = request.form.get('email')
             
-            # Update student-specific information
             student.phone_number = request.form.get('phone_number')
             student.address = request.form.get('address')
             
-            # Check if password reset was requested
+
             if 'reset_password' in request.form:
-                # Generate a random 4-digit password
+ 
                 new_password = ''.join(random.choices('0123456789', k=4))
-                # Hash the password
+
                 student.user.password_hash = generate_password_hash(new_password)
                 
                 flash(f'Password has been reset to: {new_password}', 'success')

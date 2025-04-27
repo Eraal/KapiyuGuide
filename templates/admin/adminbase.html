@@ -8,6 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="{{ url_for('static', filename='js/admin/adminbase.js') }}"></script>
     <meta name="csrf-token" content="{{ csrf_token() if csrf_token is defined else '' }}">
+    
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -172,6 +173,18 @@
                 </span>
             {% endif %}
         </a>
+
+        <a href="{{ url_for('admin.all_inquiries') }}" class="sidebar-item flex items-center px-4 py-3 {% if request.endpoint == 'admin.all_inquiries' %}active-nav text-blue-800 font-semibold{% else %}text-gray-700{% endif %}">
+            <div class="w-8 flex justify-center">
+                <i class="fas fa-user-shield"></i>
+            </div>
+            <span class="ml-2">Inquiries</span>
+            {% if request.endpoint == 'admin.all_inquiries' %}
+                <span class="ml-auto">
+                    <i class="fas fa-circle text-blue-800 text-xs"></i>
+                </span>
+            {% endif %}
+        </a>
         
         <a href="{{ url_for('admin.student_manage') }}" class="sidebar-item flex items-center px-4 py-3 {% if request.endpoint == 'admin.student_manage' %}active-nav text-blue-800 font-semibold{% else %}text-gray-700{% endif %}">
             <div class="w-8 flex justify-center">
@@ -202,7 +215,7 @@
                 <i class="fas fa-clipboard-list"></i>
             </div>
             <span class="ml-2">Audit Logs</span>
-            {% if request.endpoint == 'admin.inquiry_logs' %}
+            {% if request.endpoint == 'admin.audit_logs' %}
                 <span class="ml-auto">
                     <i class="fas fa-circle text-blue-800 text-xs"></i>
                 </span>

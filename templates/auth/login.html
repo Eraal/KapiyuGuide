@@ -26,6 +26,7 @@
         <div class="p-6 pt-2">
           <form action="{{ url_for('auth.login') }}" method="post" class="space-y-4">
             <!-- Email Input -->
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="relative">
               <div class="flex items-center bg-gray-100 rounded-md">
                 <span class="pl-3 text-gray-500">

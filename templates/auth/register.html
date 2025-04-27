@@ -16,6 +16,7 @@
             <h1 class="text-xl md:text-2xl font-bold text-blue-800 mb-4 md:mb-6 text-center">CREATE AN ACCOUNT</h1>
             
             <form action="{{ url_for('auth.register') }}" method="POST" class="space-y-3 md:space-y-4">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div>
                     <div class="relative">
                         <input type="text" name="first_name" placeholder="First Name" class="w-full px-4 py-2 border rounded-lg pl-10 bg-gray-100 text-sm md:text-base">

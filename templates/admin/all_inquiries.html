@@ -1,0 +1,403 @@
+{% extends "admin/adminbase.html" %}
+
+{% block title %}All Inquiries - KapiyuGuide Admin{% endblock %}
+
+{% block content %}
+<div class="container ">
+    <!-- Page Header -->
+    <div class="flex justify-between items-center mb-6">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800">All Inquiries</h1>
+            <p class="text-sm text-gray-600">View inquiries across all offices</p>
+        </div>
+        <div class="flex space-x-2">
+            <button id="refreshBtn" class="bg-blue-800 text-white px-4 py-2 rounded-md flex items-center hover:bg-blue-900">
+                <i class="fas fa-sync-alt mr-2"></i> Refresh
+            </button>
+            <div class="relative">
+                <button id="exportBtn" class="bg-green-600 text-white px-4 py-2 rounded-md flex items-center hover:bg-green-700">
+                    <i class="fas fa-file-export mr-2"></i> Export
+                </button>
+                <div id="exportOptions" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg hidden z-10">
+                    <div class="py-1">
+                        <button class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Export as CSV</button>
+                        <button class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Export as PDF</button>
+                        <button class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Export as Excel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters and Search Panel -->
+    <div class="bg-white p-4 rounded-lg shadow-md mb-6">
+        <form action="{{ url_for('admin.all_inquiries') }}" method="GET">
+            <div class="flex flex-wrap gap-4">
+                <div class="flex-1 min-w-[200px]">
+                    <label for="office-filter" class="block text-sm font-medium text-gray-700 mb-1">Office</label>
+                    <select id="office-filter" name="office" class="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">All Offices</option>
+                        {% for office in offices %}
+                            <option value="{{ office.id }}" {% if request.args.get('office')|int == office.id %}selected{% endif %}>{{ office.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="flex-1 min-w-[200px]">
+                    <label for="status-filter" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                    <select id="status-filter" name="status" class="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">All Statuses</option>
+                        <option value="pending" {% if request.args.get('status') == 'pending' %}selected{% endif %}>Pending</option>
+                        <option value="in_progress" {% if request.args.get('status') == 'in_progress' %}selected{% endif %}>In Progress</option>
+                        <option value="resolved" {% if request.args.get('status') == 'resolved' %}selected{% endif %}>Resolved</option>
+                        <option value="closed" {% if request.args.get('status') == 'closed' %}selected{% endif %}>Closed</option>
+                    </select>
+                </div>
+                <div class="flex-1 min-w-[200px]">
+                    <label for="date-filter" class="block text-sm font-medium text-gray-700 mb-1">Date Range</label>
+                    <select id="date-filter" name="date_range" class="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">All Time</option>
+                        <option value="today" {% if request.args.get('date_range') == 'today' %}selected{% endif %}>Today</option>
+                        <option value="yesterday" {% if request.args.get('date_range') == 'yesterday' %}selected{% endif %}>Yesterday</option>
+                        <option value="this_week" {% if request.args.get('date_range') == 'this_week' %}selected{% endif %}>This Week</option>
+                        <option value="last_week" {% if request.args.get('date_range') == 'last_week' %}selected{% endif %}>Last Week</option>
+                        <option value="this_month" {% if request.args.get('date_range') == 'this_month' %}selected{% endif %}>This Month</option>
+                        <option value="last_month" {% if request.args.get('date_range') == 'last_month' %}selected{% endif %}>Last Month</option>
+                        <option value="custom" {% if request.args.get('date_range') == 'custom' %}selected{% endif %}>Custom Range</option>
+                    </select>
+                </div>
+                <div class="flex-1 min-w-[300px]">
+                    <label for="search" class="block text-sm font-medium text-gray-700 mb-1">Search</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-search text-gray-400"></i>
+                        </div>
+                        <input id="search" name="search" type="text" value="{{ request.args.get('search', '') }}" class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Search by student name, ID, or subject...">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Custom Date Range (Initially Hidden) -->
+            <div id="custom-date-container" class="{% if request.args.get('date_range') != 'custom' %}hidden{% endif %} mt-4 flex gap-4">
+                <div class="flex-1">
+                    <label for="start-date" class="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                    <input type="date" id="start-date" name="start_date" value="{{ request.args.get('start_date', '') }}" class="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="flex-1">
+                    <label for="end-date" class="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                    <input type="date" id="end-date" name="end_date" value="{{ request.args.get('end_date', '') }}" class="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="flex items-end">
+                    <button type="submit" class="bg-blue-800 text-white px-4 py-2 rounded-md hover:bg-blue-900">Apply</button>
+                </div>
+            </div>
+
+            <div class="flex justify-between mt-4">
+                <div class="text-sm text-gray-600">
+                    <span id="filtered-count">{{ pagination.total }}</span> inquiries found
+                </div>
+                <div class="flex items-center">
+                    <a href="{{ url_for('admin.all_inquiries') }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center">
+                        <i class="fas fa-times-circle mr-1"></i> Clear Filters
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white p-4 rounded-lg shadow-md border-l-4 border-blue-500">
+            <div class="flex justify-between">
+                <div>
+                    <p class="text-sm text-gray-600">Total Inquiries</p>
+                    <h3 class="text-2xl font-bold text-gray-800">{{ stats.total }}</h3>
+                </div>
+                <div class="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
+                    <i class="fas fa-inbox text-blue-500 text-xl"></i>
+                </div>
+            </div>
+            <div class="mt-2 text-xs text-gray-500">
+                <span class="{% if stats.total_change > 0 %}text-green-500{% else %}text-red-500{% endif %} font-medium">
+                    <i class="fas fa-arrow-{% if stats.total_change > 0 %}up{% else %}down{% endif %} mr-1"></i>{{ stats.total_change|abs }}%
+                </span> from last week
+            </div>
+        </div>
+        
+        <div class="bg-white p-4 rounded-lg shadow-md border-l-4 border-yellow-500">
+            <div class="flex justify-between">
+                <div>
+                    <p class="text-sm text-gray-600">Pending</p>
+                    <h3 class="text-2xl font-bold text-gray-800">{{ stats.pending }}</h3>
+                </div>
+                <div class="h-12 w-12 rounded-full bg-yellow-100 flex items-center justify-center">
+                    <i class="fas fa-clock text-yellow-500 text-xl"></i>
+                </div>
+            </div>
+            <div class="mt-2 text-xs text-gray-500">
+                <span class="{% if stats.pending_change > 0 %}text-red-500{% else %}text-green-500{% endif %} font-medium">
+                    <i class="fas fa-arrow-{% if stats.pending_change > 0 %}up{% else %}down{% endif %} mr-1"></i>{{ stats.pending_change|abs }}%
+                </span> from last week
+            </div>
+        </div>
+        
+        <div class="bg-white p-4 rounded-lg shadow-md border-l-4 border-indigo-500">
+            <div class="flex justify-between">
+                <div>
+                    <p class="text-sm text-gray-600">In Progress</p>
+                    <h3 class="text-2xl font-bold text-gray-800">{{ stats.in_progress }}</h3>
+                </div>
+                <div class="h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center">
+                    <i class="fas fa-spinner text-indigo-500 text-xl"></i>
+                </div>
+            </div>
+            <div class="mt-2 text-xs text-gray-500">
+                <span class="{% if stats.in_progress_change > 0 %}text-red-500{% else %}text-green-500{% endif %} font-medium">
+                    <i class="fas fa-arrow-{% if stats.in_progress_change > 0 %}up{% else %}down{% endif %} mr-1"></i>{{ stats.in_progress_change|abs }}%
+                </span> from last week
+            </div>
+        </div>
+        
+        <div class="bg-white p-4 rounded-lg shadow-md border-l-4 border-green-500">
+            <div class="flex justify-between">
+                <div>
+                    <p class="text-sm text-gray-600">Resolved</p>
+                    <h3 class="text-2xl font-bold text-gray-800">{{ stats.resolved }}</h3>
+                </div>
+                <div class="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
+                    <i class="fas fa-check-circle text-green-500 text-xl"></i>
+                </div>
+            </div>
+            <div class="mt-2 text-xs text-gray-500">
+                <span class="{% if stats.resolved_change > 0 %}text-green-500{% else %}text-red-500{% endif %} font-medium">
+                    <i class="fas fa-arrow-{% if stats.resolved_change > 0 %}up{% else %}down{% endif %} mr-1"></i>{{ stats.resolved_change|abs }}%
+                </span> from last week
+            </div>
+        </div>
+    </div>
+
+    <!-- Inquiries Table -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <div class="flex items-center cursor-pointer">
+                                ID <i class="fas fa-sort ml-1"></i>
+                            </div>
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <div class="flex items-center cursor-pointer">
+                                Student <i class="fas fa-sort ml-1"></i>
+                            </div>
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <div class="flex items-center cursor-pointer">
+                                Office <i class="fas fa-sort ml-1"></i>
+                            </div>
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <div class="flex items-center cursor-pointer">
+                                Subject <i class="fas fa-sort ml-1"></i>
+                            </div>
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <div class="flex items-center cursor-pointer">
+                                Date <i class="fas fa-sort ml-1"></i>
+                            </div>
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <div class="flex items-center cursor-pointer">
+                                Status <i class="fas fa-sort ml-1"></i>
+                            </div>
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Action
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for inquiry in inquiries %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">#INQ-{{ inquiry.id }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="h-8 w-8 rounded-full bg-{% if loop.index is divisibleby 5 %}red{% elif loop.index is divisibleby 4 %}orange{% elif loop.index is divisibleby 3 %}purple{% elif loop.index is divisibleby 2 %}green{% else %}blue{% endif %}-500 flex items-center justify-center text-white text-sm">
+                                    {{ inquiry.student.user.first_name[0] }}{{ inquiry.student.user.last_name[0] }}
+                                </div>
+                                <div class="ml-3">
+                                    <div class="text-sm font-medium text-gray-900">{{ inquiry.student.user.get_full_name() }}</div>
+                                    <div class="text-xs text-gray-500">ID: {{ inquiry.student.student_number or "N/A" }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-900">{{ inquiry.office.name or "N/A" }}</div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-sm text-gray-900 max-w-xs truncate">{{ inquiry.subject }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-900">{{ inquiry.created_at.strftime('%b %d, %Y') }}</div>
+                            <div class="text-xs text-gray-500">{{ inquiry.created_at.strftime('%I:%M %p') }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                {% if inquiry.status == 'pending' %}bg-yellow-100 text-yellow-800
+                                {% elif inquiry.status == 'in_progress' %}bg-indigo-100 text-indigo-800
+                                {% elif inquiry.status == 'resolved' %}bg-green-100 text-green-800
+                                {% elif inquiry.status == 'closed' %}bg-gray-100 text-gray-800
+                                {% else %}bg-blue-100 text-blue-800{% endif %}">
+                                {{ inquiry.status|title }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <div class="flex space-x-2">
+                                <a href="{{ url_for('admin.view_inquiry_details', inquiry_id=inquiry.id) }}" class="text-blue-600 hover:text-blue-900" title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    
+                    {% if not inquiries %}
+                    <tr>
+                        <td colspan="7" class="px-6 py-10 text-center text-gray-500">
+                            <i class="fas fa-inbox text-gray-400 text-3xl mb-3"></i>
+                            <p>No inquiries found.</p>
+                        </td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination Controls -->
+        {% if pagination.pages > 1 %}
+        <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+            <div class="flex-1 flex justify-between sm:hidden">
+                {% if pagination.has_prev %}
+                <a href="{{ url_for('admin.all_inquiries', page=pagination.prev_num, **request.args) }}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                    Previous
+                </a>
+                {% else %}
+                <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-300 bg-white cursor-not-allowed">
+                    Previous
+                </span>
+                {% endif %}
+                {% if pagination.has_next %}
+                <a href="{{ url_for('admin.all_inquiries', page=pagination.next_num, **request.args) }}" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                    Next
+                </a>
+                {% else %}
+                <span class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-300 bg-white cursor-not-allowed">
+                    Next
+                </span>
+                {% endif %}
+            </div>
+            <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                    <p class="text-sm text-gray-700">
+                        Showing <span class="font-medium">
+                            {{ ((pagination.page - 1) * pagination.per_page) + 1 if pagination.total else 0 }}
+                          </span> to <span class="font-medium">
+                            {{ [pagination.page * pagination.per_page, pagination.total]|min }}
+                          </span> of <span class="font-medium">
+                            {{ pagination.total }}
+                          </span> results
+                    </p>
+                </div>
+                <div>
+                    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                        {% if pagination.has_prev %}
+                        <a href="{{ url_for('admin.all_inquiries', page=pagination.prev_num, **request.args) }}" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                            <span class="sr-only">Previous</span>
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                        {% else %}
+                        <span class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-300 cursor-not-allowed">
+                            <span class="sr-only">Previous</span>
+                            <i class="fas fa-chevron-left"></i>
+                        </span>
+                        {% endif %}
+
+                        {% set show_ellipsis_start = (pagination.page > 3) %}
+                        {% set show_ellipsis_end = (pagination.page < pagination.pages - 2) %}
+
+                        {% if show_ellipsis_start %}
+                        <a href="{{ url_for('admin.all_inquiries', page=1, **request.args) }}" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                            1
+                        </a>
+                        <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                            ...
+                        </span>
+                        {% endif %}
+
+                        {% for page_num in range(max(1, pagination.page - 2), min(pagination.pages + 1, pagination.page + 3)) %}
+                        <a href="{{ url_for('admin.all_inquiries', page=page_num, **request.args) }}" 
+                           class="{% if page_num == pagination.page %}z-10 bg-blue-800 border-blue-800 text-white{% else %}bg-white border-gray-300 text-gray-500 hover:bg-gray-50{% endif %} relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                            {{ page_num }}
+                        </a>
+                        {% endfor %}
+
+                        {% if show_ellipsis_end %}
+                        <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                            ...
+                        </span>
+                        <a href="{{ url_for('admin.all_inquiries', page=pagination.pages, **request.args) }}" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                            {{ pagination.pages }}
+                        </a>
+                        {% endif %}
+
+                        {% if pagination.has_next %}
+                        <a href="{{ url_for('admin.all_inquiries', page=pagination.next_num, **request.args) }}" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                            <span class="sr-only">Next</span>
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                        {% else %}
+                        <span class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-300 cursor-not-allowed">
+                            <span class="sr-only">Next</span>
+                            <i class="fas fa-chevron-right"></i>
+                        </span>
+                        {% endif %}
+                    </nav>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Detail View Modal -->
+<div id="inquiryDetailModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-11/12 xl:w-3/4 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="text-lg font-medium text-gray-900">Inquiry Details</h3>
+                <button class="text-gray-400 hover:text-gray-500 modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <!-- Modal content will be loaded dynamically -->
+            <div id="modal-content" class="mt-4">
+                <div class="flex justify-center items-center py-10">
+                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-800"></div>
+                </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="mt-5 flex justify-end gap-3">
+                <button class="px-4 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50 modal-close">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+cript>
+<script src="/static/js/admin/all_inquiries.js"></script>
+
+{% endblock %}

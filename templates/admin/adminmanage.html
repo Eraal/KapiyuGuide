@@ -4,235 +4,376 @@
 
 {% block content %}
 <style>
+    /* Enhanced animations */
     @keyframes slideInRight {
-    from {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
-}
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
 
-@keyframes slideOutRight {
-    from {
-        transform: translateX(0);
-        opacity: 1;
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
     }
-    to {
-        transform: translateX(100%);
-        opacity: 0;
+
+    @keyframes slideOutRight {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        to {
+            transform: translateX(100%);
+            opacity: 0;
+        }
     }
-}
 
-#passwordResetMessage {
-    animation: slideInRight 0.3s ease-out forwards;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-}
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
 
-#passwordResetMessage.closing {
-    animation: slideOutRight 0.3s ease-in forwards;
-}
+        to {
+            opacity: 1;
+        }
+    }
+
+    /* Enhanced hover effects */
+    .stat-card {
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+
+    .office-card {
+        transition: all 0.25s ease;
+    }
+
+    .office-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .action-btn {
+        transition: all 0.2s ease;
+    }
+
+    .action-btn:hover {
+        transform: scale(1.05);
+    }
+
+    /* Table hover effects */
+    .table-row {
+        transition: background-color 0.2s ease;
+    }
+
+    /* Modal animations */
+    .modal-content {
+        animation: fadeIn 0.3s ease-out;
+    }
+
+    /* Notification styling */
+    #passwordResetMessage {
+        animation: slideInRight 0.3s ease-out forwards;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+
+    #passwordResetMessage.closing {
+        animation: slideOutRight 0.3s ease-in forwards;
+    }
+
+    /* Steps indicators */
+    .step-active {
+        color: #1e40af;
+    }
+
+    .step-active span:first-child {
+        background-color: #1e40af;
+    }
+
+    .step-active::after {
+        border-color: #1e40af;
+    }
+
+    /* Form focus effects */
+    input:focus,
+    select:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+        border-color: #3b82f6;
+    }
 </style>
-    <div class="flex items-center mb-6">
-        <i class="fas fa-th-large mr-2 text-blue-800"></i>
-        <h2 class="text-xl font-bold">Super Admin — Manage Admins</h2>
+
+<div class="space-y-6">
+    <!-- Dashboard Header -->
+    <div>
+        <h1 class="text-2xl font-bold text-gray-800">Manage Admins</h1>
+        <p class="text-sm text-gray-600">Manage All Offices Admins</p>
     </div>
 
-    <!-- Quick Stats Cards -->
-    <div class="bg-[url('{{ url_for('static', filename='images/backgroundlanding.png') }}')] bg-cover bg-center bg-no-repeat bg-blend-overlay rounded-lg p-4 shadow-lg">
-        <h3 class="text-white font-bold mb-3 ml-2">QUICK STATS</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <!-- Quick Stats Cards with enhanced design -->
+    <div
+        class="bg-gradient-to-r from-blue-900 to-blue-700 rounded-xl shadow-lg p-4 md:p-6 text-white transition-all duration-300 hover:shadow-xl">
+
+        <h3 class="font-bold mb-4 ml-2 text-lg">QUICK STATS</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
             <!-- Total Offices -->
-            <div class="bg-white rounded-lg shadow p-4 flex justify-between items-center transition-transform hover:scale-105">
+            <div class="bg-white rounded-xl shadow-md p-5 flex justify-between items-center stat-card text-gray-800">
                 <div>
-                    <h4 class="text-sm font-semibold text-gray-600">TOTAL OFFICES</h4>
-                    <p class="text-3xl font-bold text-blue-700">{{ total_offices }}</p>
+                    <h4 class="text-sm font-semibold text-gray-500">TOTAL OFFICES</h4>
+                    <p class="text-3xl font-bold text-blue-700 mt-1">{{ total_offices }}</p>
                 </div>
-                <div class="bg-blue-100 p-3 rounded-full">
-                    <i class="fas fa-building text-blue-500 text-xl"></i>
+                <div class="bg-blue-100 p-4 rounded-full">
+                    <i class="fas fa-building text-blue-600 text-xl"></i>
                 </div>
             </div>
 
             <!-- Active Office Admin -->
-            <div class="bg-white rounded-lg shadow p-4 flex justify-between items-center transition-transform hover:scale-105">
+            <div class="bg-white rounded-xl shadow-md p-5 flex justify-between items-center stat-card text-gray-800">
                 <div>
-                    <h4 class="text-sm font-semibold text-gray-600">ACTIVE OFFICE ADMIN</h4>
-                    <p class="text-3xl font-bold text-red-600">{{ active_office_admins }}</p>
+                    <h4 class="text-sm font-semibold text-gray-500">ACTIVE OFFICE ADMIN</h4>
+                    <p class="text-3xl font-bold text-red-600 mt-1">{{ active_office_admins }}</p>
                 </div>
-                <div class="bg-red-100 p-3 rounded-full">
-                    <i class="fas fa-user-check text-red-500 text-xl"></i>
+                <div class="bg-red-100 p-4 rounded-full">
+                    <i class="fas fa-user-check text-red-600 text-xl"></i>
                 </div>
             </div>
 
             <!-- Unassigned Office -->
-            <div class="bg-white rounded-lg shadow p-4 flex justify-between items-center transition-transform hover:scale-105">
+            <div class="bg-white rounded-xl shadow-md p-5 flex justify-between items-center stat-card text-gray-800">
                 <div>
-                    <h4 class="text-sm font-semibold text-gray-600">UNASSIGNED OFFICE</h4>
-                    <p class="text-3xl font-bold text-green-600">{{ unassigned_offices }}</p>
+                    <h4 class="text-sm font-semibold text-gray-500">UNASSIGNED OFFICE</h4>
+                    <p class="text-3xl font-bold text-green-600 mt-1">{{ unassigned_offices }}</p>
                 </div>
-                <div class="bg-green-100 p-3 rounded-full">
-                    <i class="fas fa-door-open text-green-500 text-xl"></i>
+                <div class="bg-green-100 p-4 rounded-full">
+                    <i class="fas fa-door-open text-green-600 text-xl"></i>
                 </div>
             </div>
 
             <!-- Unassigned Admin -->
-            <div class="bg-white rounded-lg shadow p-4 flex justify-between items-center transition-transform hover:scale-105">
+            <div class="bg-white rounded-xl shadow-md p-5 flex justify-between items-center stat-card text-gray-800">
                 <div>
-                    <h4 class="text-sm font-semibold text-gray-600">UNASSIGNED ADMIN</h4>
-                    <p class="text-3xl font-bold text-green-600">{{ unassigned_admins }}</p>
+                    <h4 class="text-sm font-semibold text-gray-500">UNASSIGNED ADMIN</h4>
+                    <p class="text-3xl font-bold text-green-600 mt-1">{{ unassigned_admins }}</p>
                 </div>
-                <div class="bg-green-100 p-3 rounded-full">
-                    <i class="fas fa-user-slash text-green-500 text-xl"></i>
+                <div class="bg-green-100 p-4 rounded-full">
+                    <i class="fas fa-user-slash text-green-600 text-xl"></i>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Office Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 card-container rounded-lg p-4">
-        {% for office in offices %}
-        <div class="bg-white rounded shadow-md overflow-hidden border border-gray-200">
-            <div class="bg-red-900 text-white p-2 flex justify-between items-center">
-                <h4 class="font-semibold">{{ office.name }}</h4>
-                <button 
-                    class="bg-blue-500 hover:bg-blue-600 text-white text-xs px-3 py-1 rounded view-office-button" 
-                    data-office-id="{{ office.id }}"
-                    data-office-name="{{ office.name }}"
-                    onclick="openOfficeModal({{ office.id }}, '{{ office.name }}')">
-                    VIEW
-                </button>
+    <!-- Office Cards with enhanced design -->
+    <div class="mb-8">
+        <h3 class="text-lg font-bold text-gray-700 mb-4">Offices</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+            {% for office in offices %}
+            <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 office-card">
+                <div class="bg-gradient-to-r from-red-800 to-red-900 text-white p-3 flex justify-between items-center">
+                    <h4 class="font-semibold truncate">{{ office.name }}</h4>
+                    <button
+                        class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1.5 rounded-lg action-btn focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+                        data-office-id="{{ office.id }}" data-office-name="{{ office.name }}"
+                        onclick="openOfficeModal({{ office.id }}, '{{ office.name }}')">
+                        VIEW
+                    </button>
+                </div>
+                <div class="p-4 {% if office.office_admins|length > 0 %}bg-blue-50{% else %}bg-yellow-50{% endif %}">
+                    <div class="flex items-center">
+                        <div
+                            class="{% if office.office_admins|length > 0 %}bg-blue-100 text-blue-700{% else %}bg-yellow-100 text-yellow-700{% endif %} p-2 rounded-full mr-3">
+                            <i
+                                class="fas {% if office.office_admins|length > 0 %}fa-user-check{% else %}fa-user-clock{% endif %}"></i>
+                        </div>
+                        <p class="text-sm text-gray-700">
+                            <span class="font-bold">{{ office.office_admins|length }}</span>
+                            {{ 'Admins' if office.office_admins|length != 1 else 'Admin' }}
+                        </p>
+                    </div>
+                </div>
             </div>
-            <div class="p-3 {% if office.office_admins|length > 0 %}bg-blue-100{% else %}bg-yellow-100{% endif %}">
-                <p class="text-sm text-gray-700">ADMINS: <span class="font-bold">{{ office.office_admins|length }}</span></p>
-            </div>
-        </div>
-        {% endfor %}
-    </div>
-
-   <!-- Admin Table Section -->
-<div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
-    <div class="flex justify-between items-center p-4 border-b border-gray-200">
-        <h3 class="font-bold text-gray-700">TOTAL OFFICE ADMINS</h3>
-        <button class="bg-blue-800 hover:bg-blue-900 text-white px-3 py-1 rounded flex items-center" onclick="openAddAdminModal()">
-            <i class="fas fa-plus mr-1"></i> ADD
-        </button>
-    </div>
-    
-    <!-- Search and Filter Controls -->
-    <div class="p-4 flex flex-col md:flex-row justify-between items-center gap-3">
-        <div class="w-full md:w-1/2">
-            <div class="relative">
-                <span class="absolute inset-y-0 left-0 flex items-center pl-3">
-                    <i class="fas fa-search text-gray-400"></i>
-                </span>
-                <input type="text" id="adminSearchInput" class="pl-10 pr-4 py-2 border border-gray-300 rounded w-full" placeholder="Search...">
-            </div>
-        </div>
-        <div class="flex flex-col md:flex-row gap-2 w-full md:w-auto">
-            <div class="flex items-center">
-                <span class="mr-2 text-gray-600 whitespace-nowrap">Filtered by:</span>
-                <select id="statusFilter" class="border border-gray-300 rounded py-2 px-3">
-                    <option value="all">All Status</option>
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                </select>
-            </div>
-            <div>
-                <select id="sortFilter" class="border border-gray-300 rounded py-2 px-3">
-                    <option value="name">Sort by Name</option>
-                    <option value="office">Sort by Office</option>
-                    <option value="last_login">Sort by Last Login</option>
-                </select>
-            </div>
+            {% endfor %}
         </div>
     </div>
 
-    <!-- Admin Table -->
-    <div class="overflow-x-auto">
-        <table class="min-w-full bg-white">
-            <thead>
-                <tr class="bg-gray-200 text-gray-600 uppercase text-sm">
-                    <th class="py-3 px-4 text-left">OFFICE</th>
-                    <th class="py-3 px-4 text-left">ADMIN NAME</th>
-                    <th class="py-3 px-4 text-left">EMAIL</th>
-                    <th class="py-3 px-4 text-left">STATUS</th>
-                    <th class="py-3 px-4 text-left">LAST LOGIN</th>
-                    <th class="py-3 px-4 text-left">LAST UPDATED</th>
-                    <th class="py-3 px-4 text-center">ACTION</th>
-                </tr>
-            </thead>
-            <tbody class="text-gray-600 text-sm" id="adminTableBody">
-                {% for user in office_admins %}
-                <tr class="border-b hover:bg-gray-50">
-                    <td class="py-3 px-4">
-                        {% if user.office_admin and user.office_admin.office %}
-                            {{ user.office_admin.office.name }}
-                        {% else %}
-                            Unassigned
-                        {% endif %}
-                    </td>
+    <!-- Admin Table Section with enhanced design -->
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
+        <div
+            class="flex justify-between items-center p-5 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100">
+            <h3 class="font-bold text-gray-800 text-lg">TOTAL OFFICE ADMINS</h3>
+            <button
+                class="bg-blue-800 hover:bg-blue-900 text-white px-4 py-2 rounded-lg flex items-center action-btn focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+                onclick="openAddAdminModal()">
+                <i class="fas fa-plus mr-2"></i> ADD ADMIN
+            </button>
+        </div>
 
-                    <!-- Full name display -->
-                    <td class="py-3 px-4">
-                        {{ user.first_name }}{% if user.middle_name %} {{ user.middle_name }}{% endif %} {{ user.last_name }}
-                    </td>
+        <!-- Search and Filter Controls -->
+        <div class="p-5 flex flex-col md:flex-row justify-between items-center gap-4 bg-white">
+            <div class="w-full md:w-1/2">
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+                        <i class="fas fa-search text-gray-400"></i>
+                    </span>
+                    <input type="text" id="adminSearchInput"
+                        class="pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                        placeholder="Search admins...">
+                </div>
+            </div>
+            <div class="flex flex-col md:flex-row gap-3 w-full md:w-auto">
+                <div class="flex items-center">
+                    <span class="mr-2 text-gray-600 whitespace-nowrap">Filtered by:</span>
+                    <select id="statusFilter"
+                        class="border border-gray-300 rounded-lg py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                        <option value="all">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                </div>
+                <div>
+                    <select id="sortFilter"
+                        class="border border-gray-300 rounded-lg py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                        <option value="name">Sort by Name</option>
+                        <option value="office">Sort by Office</option>
+                        <option value="last_login">Sort by Last Login</option>
+                    </select>
+                </div>
+            </div>
+        </div>
 
-                    <td class="py-3 px-4">{{ user.email }}</td>
-                    <td class="py-3 px-4">
-                        <span class="{% if user.is_active %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %} py-1 px-2 rounded-full text-xs">
-                            {{ 'Active' if user.is_active else 'Inactive' }}
-                        </span>
-                    </td>
+        <!-- Admin Table with enhanced design -->
+        <div class="overflow-x-auto">
+            <table class="min-w-full bg-white">
+                <thead>
+                    <tr class="bg-gray-100 text-gray-700 uppercase text-sm tracking-wider">
+                        <th class="py-3.5 px-4 text-left">OFFICE</th>
+                        <th class="py-3.5 px-4 text-left">ADMIN NAME</th>
+                        <th class="py-3.5 px-4 text-left">EMAIL</th>
+                        <th class="py-3.5 px-4 text-left">STATUS</th>
+                        <th class="py-3.5 px-4 text-left">LAST LOGIN</th>
+                        <th class="py-3.5 px-4 text-left">LAST UPDATED</th>
+                        <th class="py-3.5 px-4 text-center">ACTION</th>
+                    </tr>
+                </thead>
+                <tbody class="text-gray-600 text-sm" id="adminTableBody">
+                    {% for user in office_admins %}
+                    <tr class="border-b hover:bg-gray-50 table-row">
+                        <td class="py-3.5 px-4">
+                            {% if user.office_admin and user.office_admin.office %}
+                            <div class="flex items-center">
+                                <div class="bg-blue-100 p-1.5 rounded-full mr-2">
+                                    <i class="fas fa-building text-blue-600 text-xs"></i>
+                                </div>
+                                {{ user.office_admin.office.name }}
+                            </div>
+                            {% else %}
+                            <div class="flex items-center">
+                                <div class="bg-gray-100 p-1.5 rounded-full mr-2">
+                                    <i class="fas fa-question text-gray-500 text-xs"></i>
+                                </div>
+                                Unassigned
+                            </div>
+                            {% endif %}
+                        </td>
 
-                    <td class="py-3 px-4">{{ user.last_login.strftime('%B %d, %I:%M %p') if user.last_login else 'Never' }}</td>
-                    <td class="py-3 px-4">{{ user.updated_at.strftime('%B %d, %I:%M %p') if user.updated_at else 'N/A' }}</td>
+                        <!-- Full name display with avatar -->
+                        <td class="py-3.5 px-4">
+                            <div class="flex items-center">
+                                <div
+                                    class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center mr-3 overflow-hidden">
+                                    {% if user.profile_pic %}
+                                    <img src="{{ url_for('static', filename=user.profile_pic) }}" alt="{{ user.first_name }}" class="h-full w-full object-cover">
+                                    {% else %}
+                                    <i class="fas fa-user text-gray-400"></i>
+                                    {% endif %}
+                                </div>
+                                <span>{{ user.first_name }}{% if user.middle_name %} {{ user.middle_name }}{% endif %}
+                                    {{ user.last_name }}</span>
+                            </div>
+                        </td>
+                        <td class="py-3.5 px-4">
+                            <div class="flex items-center">
+                                <i class="fas fa-envelope text-gray-400 mr-2"></i>
+                                {{ user.email }}
+                            </div>
+                        </td>
 
-                    <!-- Action Buttons -->
-                    <td class="py-3 px-4 text-center">
-                        <button class="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs mr-1"
-                            onclick="openEditAdminModal({{ user.id }})">
-                            EDIT
-                        </button>
+                        <td class="py-3.5 px-4">
+                            <span
+                                class="{% if user.is_active %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %} py-1 px-3 rounded-full text-xs font-medium">
+                                {{ 'Active' if user.is_active else 'Inactive' }}
+                            </span>
+                        </td>
 
-                        <button class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs" onclick="confirmDeleteAdmin({{ user.id }})">
-                            REMOVE
-                        </button>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</div>
+                        <td class="py-3.5 px-4">
+                            <div class="flex items-center">
+                                <i class="fas fa-clock text-gray-400 mr-2"></i>
+                                {{ user.last_login.strftime('%B %d, %I:%M %p') if user.last_login else 'Never' }}
+                            </div>
+                        </td>
 
-        <!-- Pagination Controls -->
-        <div class="px-4 py-3 flex items-center justify-between border-t border-gray-200">
+                        <td class="py-3.5 px-4">
+                            {{ user.updated_at.strftime('%B %d, %I:%M %p') if user.updated_at else 'N/A' }}
+                        </td>
+
+                        <!-- Action Buttons -->
+                        <td class="py-3.5 px-4 text-center">
+                            <div class="flex justify-center space-x-2">
+                                <button
+                                    class="bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs action-btn focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
+                                    onclick="openEditAdminModal({{ user.id }})">
+                                    <i class="fas fa-edit mr-1"></i> EDIT
+                                </button>
+
+                                <button
+                                    class="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg text-xs action-btn focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
+                                    onclick="confirmDeleteAdmin({{ user.id }})">
+                                    <i class="fas fa-trash-alt mr-1"></i> REMOVE
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination Controls with enhanced design -->
+        <div class="px-5 py-4 flex items-center justify-between border-t border-gray-200 bg-gray-50">
             <div class="flex-1 flex justify-between sm:hidden">
-                <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                <a href="#"
+                    class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 transition-colors">
                     Previous
                 </a>
-                <a href="#" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                <a href="#"
+                    class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 transition-colors">
                     Next
                 </a>
             </div>
             <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                 <div>
                     <p class="text-sm text-gray-700">
-                        Showing <span class="font-medium">1</span> to <span class="font-medium">{{ office_admins|length }}</span> of <span class="font-medium">{{ office_admins|length }}</span> results
+                        Showing <span class="font-medium">1</span> to <span class="font-medium">{{ office_admins|length
+                            }}</span> of <span class="font-medium">{{ office_admins|length }}</span> results
                     </p>
                 </div>
                 <div>
                     <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                        <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                        <a href="#"
+                            class="relative inline-flex items-center px-3 py-2 rounded-l-lg border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors">
                             <span class="sr-only">Previous</span>
                             <i class="fas fa-chevron-left"></i>
                         </a>
-                        <a href="#" aria-current="page" class="z-10 bg-blue-50 border-blue-500 text-blue-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                        <a href="#" aria-current="page"
+                            class="z-10 bg-blue-50 border-blue-500 text-blue-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
                             1
                         </a>
-                        <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                        <a href="#"
+                            class="relative inline-flex items-center px-3 py-2 rounded-r-lg border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors">
                             <span class="sr-only">Next</span>
                             <i class="fas fa-chevron-right"></i>
                         </a>
@@ -241,28 +382,37 @@
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Add Admin Modal -->
-<div id="addAdminModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50">
-    <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-4/5 lg:w-1/2 shadow-lg rounded-md bg-white">
-        <div class="mt-3">
-            <div class="flex justify-between items-center border-b pb-3">
-                <h3 class="text-lg font-medium text-gray-900">ADD NEW OFFICE/UNIT ADMIN</h3>
-                <button type="button" class="text-gray-400 hover:text-gray-500" onclick="closeAddAdminModal()">
+<!-- Add Admin Modal with enhanced design -->
+<div id="addAdminModal"
+    class="fixed inset-0 bg-gray-900 bg-opacity-50 backdrop-filter backdrop-blur-sm hidden overflow-y-auto h-full w-full z-50 flex items-center justify-center">
+    <div class="relative mx-auto p-6 border w-11/12 md:w-4/5 lg:w-1/2 shadow-xl rounded-xl bg-white modal-content">
+        <div class="mt-2">
+            <div class="flex justify-between items-center border-b pb-4">
+                <h3 class="text-lg font-bold text-gray-900 flex items-center">
+                    <i class="fas fa-user-plus text-blue-600 mr-2"></i>
+                    ADD NEW OFFICE/UNIT ADMIN
+                </h3>
+                <button type="button" class="text-gray-400 hover:text-gray-500 focus:outline-none"
+                    onclick="closeAddAdminModal()">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            
+
             <!-- Steps Navigation -->
-            <div class="flex justify-between mb-6 mt-4">
+            <div class="flex justify-between my-6">
                 <ol class="flex w-full">
-                    <li id="step-info" class="flex w-full items-center text-blue-800 after:content-[''] after:w-full after:h-1 after:border-b after:border-blue-800 after:border-2 after:inline-block">
-                        <span class="flex items-center justify-center w-8 h-8 bg-blue-800 rounded-full shrink-0 text-white">
+                    <li id="step-info"
+                        class="flex w-full items-center step-active after:content-[''] after:w-full after:h-1 after:border-b after:border-blue-800 after:border-2 after:inline-block">
+                        <span
+                            class="flex items-center justify-center w-8 h-8 bg-blue-800 rounded-full shrink-0 text-white">
                             1
                         </span>
-                        <span class="ml-2 text-sm">Admin Info</span>
+                        <span class="ml-2 text-sm font-medium">Admin Info</span>
                     </li>
-                    <li id="step-security" class="flex w-full items-center text-gray-400 after:content-[''] after:w-full after:h-1 after:border-b after:border-gray-300 after:border-2 after:inline-block">
+                    <li id="step-security"
+                        class="flex w-full items-center text-gray-400 after:content-[''] after:w-full after:h-1 after:border-b after:border-gray-300 after:border-2 after:inline-block">
                         <span class="flex items-center justify-center w-8 h-8 bg-gray-300 rounded-full shrink-0">
                             2
                         </span>
@@ -270,88 +420,149 @@
                     </li>
                     <li id="step-role" class="flex items-center text-gray-400">
                         <span class="flex items-center justify-center w-8 h-8 bg-gray-300 rounded-full shrink-0">
-                            3 
+                            3
                         </span>
                         <span class="ml-2 text-sm">Role & Office</span>
                     </li>
                 </ol>
             </div>
-            
+
             <!-- Add Admin Form -->
             <form id="addAdminForm" action="/admin/add_admin" method="post" enctype="multipart/form-data">
                 <!-- Step 1: Admin Information -->
-                <div id="step1Content" class="space-y-4">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div id="step1Content" class="space-y-5">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">First Name*</label>
-                            <input type="text" id="first_name" name="first_name" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" required>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">First Name*</label>
+                            <input type="text" id="first_name" name="first_name"
+                                class="block w-full border border-gray-300 rounded-lg shadow-sm p-2.5 transition-all"
+                                required>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">Middle Name</label>
-                            <input type="text" id="middle_name" name="middle_name" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Middle Name</label>
+                            <input type="text" id="middle_name" name="middle_name"
+                                class="block w-full border border-gray-300 rounded-lg shadow-sm p-2.5 transition-all">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">Last Name*</label>
-                            <input type="text" id="last_name" name="last_name" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" required>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Last Name*</label>
+                            <input type="text" id="last_name" name="last_name"
+                                class="block w-full border border-gray-300 rounded-lg shadow-sm p-2.5 transition-all"
+                                required>
                         </div>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Email Address*</label>
-                        <input type="email" id="email" name="email" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" required>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Email Address*</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-envelope text-gray-400"></i>
+                            </div>
+                            <input type="email" id="email" name="email"
+                                class="pl-10 block w-full border border-gray-300 rounded-lg shadow-sm p-2.5 transition-all"
+                                required>
+                        </div>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Profile Picture</label>
-                        <input type="file" id="profile_pic" name="profile_pic" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" accept="image/*">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Profile Picture</label>
+                        <div class="flex items-center">
+                            <div class="h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center mr-3">
+                                <i class="fas fa-user text-gray-400"></i>
+                            </div>
+                            <input type="file" id="profile_pic" name="profile_pic"
+                                class="block w-full border border-gray-300 rounded-lg shadow-sm p-2.5 transition-all"
+                                accept="image/*">
+                        </div>
                     </div>
-                    <div class="flex justify-end">
-                        <button type="button" class="px-4 py-2 bg-blue-800 text-white rounded hover:bg-blue-900" onclick="nextStep(2)">Next</button>
+                    <div class="flex justify-end pt-3">
+                        <button type="button"
+                            class="px-5 py-2.5 bg-blue-800 text-white rounded-lg hover:bg-blue-900 transition-all action-btn focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+                            onclick="nextStep(2)">
+                            Next <i class="fas fa-arrow-right ml-1"></i>
+                        </button>
                     </div>
                 </div>
-                
+
                 <!-- Step 2: Security -->
-                <div id="step2Content" class="space-y-4 hidden">
+                <div id="step2Content" class="space-y-5 hidden">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Password*</label>
-                        <input type="password" id="password" name="password" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" required>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Password*</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-lock text-gray-400"></i>
+                            </div>
+                            <input type="password" id="password" name="password"
+                                class="pl-10 block w-full border border-gray-300 rounded-lg shadow-sm p-2.5 transition-all"
+                                required>
+                        </div>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Confirm Password*</label>
-                        <input type="password" id="confirm_password" name="confirm_password" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" required>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Confirm Password*</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-lock text-gray-400"></i>
+                            </div>
+                            <input type="password" id="confirm_password" name="confirm_password"
+                                class="pl-10 block w-full border border-gray-300 rounded-lg shadow-sm p-2.5 transition-all"
+                                required>
+                        </div>
                         <p id="password-error" class="text-red-500 text-sm mt-1 hidden">Passwords do not match</p>
                     </div>
-                    <div class="flex justify-between">
-                        <button type="button" class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400" onclick="prevStep(1)">Previous</button>
-                        <button type="button" class="px-4 py-2 bg-blue-800 text-white rounded hover:bg-blue-900" onclick="validatePasswordAndNext()">Next</button>
+                    <div class="flex justify-between pt-3">
+                        <button type="button"
+                            class="px-5 py-2.5 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-all action-btn focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50"
+                            onclick="prevStep(1)">
+                            <i class="fas fa-arrow-left mr-1"></i> Previous
+                        </button>
+                        <button type="button"
+                            class="px-5 py-2.5 bg-blue-800 text-white rounded-lg hover:bg-blue-900 transition-all action-btn focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+                            onclick="validatePasswordAndNext()">
+                            Next <i class="fas fa-arrow-right ml-1"></i>
+                        </button>
                     </div>
                 </div>
-                
+
                 <!-- Step 3: Role & Office -->
-                <div id="step3Content" class="space-y-4 hidden">
+                <div id="step3Content" class="space-y-5 hidden">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Office*</label>
-                        <select id="office" name="office_id" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" required>
-                            <option value="">---  Select Office  ---</option>
-                            {% for office in offices %}
-                            <option value="{{ office.id }}">---  {{ office.name }}  ---</option>
-                            {% endfor %}
-                        </select>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Office*</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-building text-gray-400"></i>
+                            </div>
+                            <select id="office" name="office_id"
+                                class="pl-10 block w-full border border-gray-300 rounded-lg shadow-sm p-2.5 transition-all"
+                                required>
+                                <option value="">--- Select Office ---</option>
+                                {% for office in offices %}
+                                <option value="{{ office.id }}">{{ office.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Status</label>
-                        <div class="mt-2 space-x-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                        <div class="mt-2 space-x-6">
                             <label class="inline-flex items-center">
-                                <input type="radio" name="is_active" value="true" class="form-radio h-4 w-4 text-blue-600" checked>
+                                <input type="radio" name="is_active" value="true"
+                                    class="form-radio h-5 w-5 text-blue-600" checked>
                                 <span class="ml-2">Active</span>
                             </label>
                             <label class="inline-flex items-center">
-                                <input type="radio" name="is_active" value="false" class="form-radio h-4 w-4 text-blue-600">
+                                <input type="radio" name="is_active" value="false"
+                                    class="form-radio h-5 w-5 text-blue-600">
                                 <span class="ml-2">Inactive</span>
                             </label>
                         </div>
                     </div>
-                    <div class="flex justify-between">
-                        <button type="button" class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400" onclick="prevStep(2)">Previous</button>
-                        <button type="submit" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">Add Admin</button>
+                    <div class="flex justify-between pt-3">
+                        <button type="button"
+                            class="px-5 py-2.5 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-all action-btn focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50"
+                            onclick="prevStep(2)">
+                            <i class="fas fa-arrow-left mr-1"></i> Previous
+                        </button>
+                        <button type="submit"
+                            class="px-5 py-2.5 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all action-btn focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50">
+                            <i class="fas fa-check mr-1"></i> Add Admin
+                        </button>
                     </div>
                 </div>
             </form>
@@ -359,154 +570,270 @@
     </div>
 </div>
 
- <!-- Edit Admin Modal -->
-<div id="editAdminModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50">
-    <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-4/5 lg:w-1/2 shadow-lg rounded-md bg-white">
-        <div class="mt-3">
-            <div class="flex justify-between items-center border-b pb-3">
-                <h3 class="text-lg font-medium text-gray-900">EDIT OFFICE/UNIT ADMIN</h3>
-                <button type="button" class="text-gray-400 hover:text-gray-500" onclick="closeEditAdminModal()">
+<!-- Edit Admin Modal with enhanced design -->
+<div id="editAdminModal"
+    class="fixed inset-0 bg-gray-900 bg-opacity-50 backdrop-filter backdrop-blur-sm hidden overflow-y-auto h-full w-full z-50 flex items-center justify-center">
+    <div class="relative mx-auto p-6 border w-11/12 md:w-4/5 lg:w-1/2 shadow-xl rounded-xl bg-white modal-content">
+        <div class="mt-2">
+            <div class="flex justify-between items-center border-b pb-4">
+                <h3 class="text-lg font-bold text-gray-900 flex items-center">
+                    <i class="fas fa-user-edit text-blue-600 mr-2"></i>
+                    EDIT OFFICE/UNIT ADMIN
+                </h3>
+                <button type="button" class="text-gray-400 hover:text-gray-500 focus:outline-none"
+                    onclick="closeEditAdminModal()">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            
+
             <!-- Edit Admin Form -->
             <form id="editAdminForm" action="/admin/update_admin" method="post" enctype="multipart/form-data">
                 <input type="hidden" id="edit_admin_id" name="admin_id">
-                
-                <div class="space-y-4 mt-4">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+                <div class="space-y-5 mt-5">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">First Name*</label>
-                            <input type="text" id="edit_first_name" name="first_name" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" required>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">First Name*</label>
+                            <input type="text" id="edit_first_name" name="first_name"
+                                class="block w-full border border-gray-300 rounded-lg shadow-sm p-2.5 transition-all focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                required>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">Middle Name</label>
-                            <input type="text" id="edit_middle_name" name="middle_name" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Middle Name</label>
+                            <input type="text" id="edit_middle_name" name="middle_name"
+                                class="block w-full border border-gray-300 rounded-lg shadow-sm p-2.5 transition-all focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">Last Name*</label>
-                            <input type="text" id="edit_last_name" name="last_name" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" required>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Last Name*</label>
+                            <input type="text" id="edit_last_name" name="last_name"
+                                class="block w-full border border-gray-300 rounded-lg shadow-sm p-2.5 transition-all focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                required>
                         </div>
                     </div>
-                    
+
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Email Address*</label>
-                        <input type="email" id="edit_email" name="email" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" required>
-                    </div>
-                    
-                    <!-- Profile Picture Edit - Fixed to prevent infinite loop -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Profile Picture</label>
-                        <div class="flex items-center space-x-4">
-                            <div id="current_profile_pic" class="h-16 w-16 rounded-full overflow-hidden bg-gray-100">
-                                <!-- Added a static default image source and fixed the onerror handler -->
-                                <img id="edit_profile_preview" src="" alt="Profile" class="h-full w-full object-cover" 
-                                     onerror="if(this.src !== '/static/images/default.jpg') this.src='/static/images/default.jpg'">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Email Address*</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-envelope text-gray-400"></i>
                             </div>
-                            <input type="file" id="edit_profile_pic" name="profile_pic" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" accept="image/*">
+                            <input type="email" id="edit_email" name="email"
+                                class="pl-10 block w-full border border-gray-300 rounded-lg shadow-sm p-2.5 transition-all focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                required>
                         </div>
                     </div>
-                    
+
+                    <!-- Profile Picture Edit - Improved UI -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Office*</label>
-                        <select id="edit_office" name="office_id" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" required>
-                            <option value="">Select Office</option>
-                            {% for office in offices %}
-                            <option value="{{ office.id }}">{{ office.name }}</option>
-                            {% endfor %}
-                        </select>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Profile Picture</label>
+                        <div class="flex items-center space-x-4">
+                            <div id="current_profile_pic"
+                                class="h-16 w-16 rounded-full overflow-hidden bg-gray-100 border-2 border-blue-200 shadow-md">
+                                <img id="edit_profile_preview" src="" alt="Profile" class="h-full w-full object-cover"
+                                    onerror="if(this.src !== '/static/images/default.jpg') this.src='/static/images/default.jpg'">
+                            </div>
+                            <div class="flex-1">
+                                <input type="file" id="edit_profile_pic" name="profile_pic"
+                                    class="block w-full border border-gray-300 rounded-lg shadow-sm p-2.5 transition-all focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    accept="image/*">
+                                <p class="text-xs text-gray-500 mt-1">Recommended size: 300x300 pixels</p>
+                            </div>
+                        </div>
                     </div>
-                    
-                    <!-- Password Reset Section -->
+
                     <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Office*</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-building text-gray-400"></i>
+                            </div>
+                            <select id="edit_office" name="office_id"
+                                class="pl-10 block w-full border border-gray-300 rounded-lg shadow-sm p-2.5 transition-all focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                required>
+                                <option value="">Select Office</option>
+                                {% for office in offices %}
+                                <option value="{{ office.id }}">-- {{ office.name }} --</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Password Reset Section - Enhanced -->
+                    <div class="bg-blue-50 rounded-lg p-4 border border-blue-200">
                         <div class="flex items-center justify-between">
-                            <label class="block text-sm font-medium text-gray-700">Password Management</label>
-                            <button type="button" id="resetPasswordBtn" class="text-sm text-blue-600 hover:text-blue-800" onclick="resetAdminPassword()">
-                                Reset to Default Password
+                            <label class="block text-sm font-medium text-gray-700 flex items-center">
+                                <i class="fas fa-lock text-blue-600 mr-2"></i>
+                                Password Management
+                            </label>
+                            <button type="button" id="resetPasswordBtn"
+                                class="text-sm text-white bg-blue-600 hover:bg-blue-700 px-3 py-1.5 rounded-lg transition-all flex items-center action-btn focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+                                onclick="resetAdminPassword()">
+                                <i class="fas fa-key mr-2"></i> Reset Password
                             </button>
                         </div>
+                        <p class="text-xs text-gray-500 mt-2">Resetting will change the password to default
+                            (kapiyuadmin).</p>
                     </div>
-                    
+
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Status</label>
-                        <div class="mt-2 space-x-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                        <div class="mt-2 space-x-6">
                             <label class="inline-flex items-center">
-                                <input type="radio" id="edit_active" name="is_active" value="true" class="form-radio h-4 w-4 text-blue-600">
+                                <input type="radio" id="edit_active" name="is_active" value="true"
+                                    class="form-radio h-5 w-5 text-blue-600">
                                 <span class="ml-2">Active</span>
                             </label>
                             <label class="inline-flex items-center">
-                                <input type="radio" id="edit_inactive" name="is_active" value="false" class="form-radio h-4 w-4 text-blue-600">
+                                <input type="radio" id="edit_inactive" name="is_active" value="false"
+                                    class="form-radio h-5 w-5 text-blue-600">
                                 <span class="ml-2">Inactive</span>
                             </label>
                         </div>
                     </div>
-                    
-                    <div class="flex justify-end">
-                        <button type="button" class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 mr-2" onclick="closeEditAdminModal()">Cancel</button>
-                        <button type="submit" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">Update Admin</button>
+
+                    <div class="flex justify-end pt-4 border-t">
+                        <button type="button"
+                            class="px-5 py-2.5 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 mr-3 transition-all action-btn focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50"
+                            onclick="closeEditAdminModal()">
+                            <i class="fas fa-times mr-1"></i> Cancel
+                        </button>
+                        <button type="submit"
+                            class="px-5 py-2.5 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all action-btn focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50">
+                            <i class="fas fa-save mr-1"></i> Update Admin
+                        </button>
                     </div>
                 </div>
             </form>
         </div>
     </div>
 </div>
-<!-- View Office Modal -->
-<div id="viewOfficeModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50">
-    <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
-        <div class="mt-3">
-            <div class="flex justify-between items-center border-b pb-3">
-                <h3 class="text-lg font-medium text-gray-900" id="officeModalTitle">Office Name</h3>
-                <button type="button" class="text-gray-400 hover:text-gray-500" onclick="closeOfficeModal()">
+
+<!-- View Office Modal with enhanced design -->
+<div id="viewOfficeModal"
+    class="fixed inset-0 bg-gray-900 bg-opacity-50 backdrop-filter backdrop-blur-sm hidden overflow-y-auto h-full w-full z-50 flex items-center justify-center">
+    <div class="relative mx-auto p-6 border w-11/12 md:w-3/4 lg:w-1/2 shadow-xl rounded-xl bg-white modal-content">
+        <div class="mt-2">
+            <div class="flex justify-between items-center border-b pb-4">
+                <h3 class="text-lg font-bold text-gray-900 flex items-center" id="officeModalTitle">
+                    <i class="fas fa-building text-blue-600 mr-2"></i>
+                    <span>Office Name</span>
+                </h3>
+                <button type="button" class="text-gray-400 hover:text-gray-500 focus:outline-none"
+                    onclick="closeOfficeModal()">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            
-            <div class="mt-4">
-                <h4 class="font-medium text-gray-700 mb-2">Office Administrators</h4>
-                <div id="officeAdminsContainer" class="mt-3">
-                    <!-- Office admins will be loaded here -->
-                    <div class="flex justify-between items-center p-2 border-b">
-                        <span>Admin Name</span>
-                        <button class="bg-red-500 hover:bg-red-600 text-white py-1 px-2 rounded text-sm" 
-                                onclick="removeOfficeAdmin(office_id, admin_id)">Remove</button>
+
+            <div class="mt-5">
+                <div class="flex items-center justify-between mb-4">
+                    <h4 class="font-medium text-gray-700 flex items-center">
+                        <i class="fas fa-users text-blue-600 mr-2"></i>
+                        Office Administrators
+                    </h4>
+                    <!-- <button
+                        class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1.5 rounded-lg action-btn focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
+                        <i class="fas fa-plus mr-1"></i> ASSIGN ADMIN
+                    </button> -->
+                </div>
+
+                <div class="bg-gray-50 rounded-lg border border-gray-200">
+                    <div id="officeAdminsContainer" class="divide-y divide-gray-200">
+                        <!-- Office admins will be loaded here -->
+                        <div class="flex justify-between items-center p-4 hover:bg-gray-100 transition-colors">
+                            <div class="flex items-center">
+                                <div
+                                    class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center mr-3 overflow-hidden">
+                                    <i class="fas fa-user text-gray-400"></i>
+                                </div>
+                                <div>
+                                    <span class="font-medium text-gray-800">Admin Name</span>
+                                    <div class="text-xs text-gray-500">admin@example.com</div>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="bg-green-100 text-green-800 py-1 px-2 rounded-full text-xs font-medium">
+                                    Active
+                                </span>
+                                <button
+                                    class="bg-red-500 hover:bg-red-600 text-white py-1 px-2 rounded text-xs action-btn focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
+                                    onclick="removeOfficeAdmin(office_id, admin_id)">
+                                    <i class="fas fa-trash-alt mr-1"></i> Remove
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Empty state for when there are no admins -->
+                    <div id="noAdminsMessage" class="p-8 text-center text-gray-500 hidden">
+                        <div class="flex justify-center mb-4">
+                            <div class="bg-gray-100 p-4 rounded-full">
+                                <i class="fas fa-user-slash text-gray-400 text-2xl"></i>
+                            </div>
+                        </div>
+                        <p>No administrators assigned to this office</p>
+                        <button
+                            class="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm action-btn focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
+                            <i class="fas fa-plus mr-1"></i> Assign Admin
+                        </button>
                     </div>
                 </div>
-                
             </div>
         </div>
     </div>
 </div>
 
-    <!-- Delete Confirmation Modal - Improved Design -->
-<div id="deleteConfirmModal" class="fixed inset-0 bg-gray-800 bg-opacity-75 backdrop-blur-sm overflow-y-auto h-full w-full hidden z-50 flex justify-center items-center">
-    <div class="relative mx-auto p-6 w-full max-w-md shadow-2xl rounded-lg bg-white">
-        <div class="mt-3 text-center">
-            <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-6">
-                <i class="fas fa-exclamation-triangle text-red-600 text-2xl"></i>
+<!-- Delete Confirmation Modal - Improved Design -->
+<div id="deleteConfirmModal"
+    class="fixed inset-0 bg-gray-900 bg-opacity-50 backdrop-filter backdrop-blur-sm hidden overflow-y-auto h-full w-full z-50 flex items-center justify-center">
+    <div class="relative mx-auto p-6 w-full max-w-md shadow-xl rounded-xl bg-white modal-content">
+        <div class="mt-2 text-center">
+            <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-red-100 mb-6">
+                <i class="fas fa-exclamation-triangle text-red-600 text-3xl"></i>
             </div>
-            <h3 class="text-xl leading-6 font-medium text-gray-900 mb-4">Delete Confirmation</h3>
+            <h3 class="text-xl leading-6 font-bold text-gray-900 mb-4">Delete Confirmation</h3>
             <div class="mt-2 px-4 py-3">
                 <p class="text-gray-600">
                     Are you sure you want to delete this admin? This action cannot be undone.
                 </p>
             </div>
             <div class="flex items-center justify-between px-4 py-3 mt-4 space-x-4">
-                <button id="cancelDeleteBtn" class="w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-4 rounded focus:outline-none focus:shadow-outline transition-colors">
-                    Cancel
+                <button id="cancelDeleteBtn"
+                    class="w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50 transition-colors action-btn">
+                    <i class="fas fa-times mr-1"></i> Cancel
                 </button>
                 <form id="deleteAdminForm" class="w-full" action="{{ url_for('admin.delete_admin') }}" method="post">
                     <input type="hidden" id="deleteAdminId" name="admin_id">
-                    <button type="submit" class="w-full bg-red-500 hover:bg-red-700 text-white font-bold py-3 px-4 rounded focus:outline-none focus:shadow-outline transition-colors">
-                        Delete
+                    <button type="submit"
+                        class="w-full bg-red-500 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 transition-colors action-btn">
+                        <i class="fas fa-trash-alt mr-1"></i> Delete
                     </button>
                 </form>
             </div>
         </div>
     </div>
 </div>
-{% endblock %}
 
+<!-- Password Reset Notification Banner -->
+<div id="passwordResetMessage"
+    class="fixed bottom-4 right-4 bg-white shadow-lg rounded-lg p-4 border-l-4 border-green-500 flex items-center justify-between w-80 hidden">
+    <div class="flex items-center">
+        <div class="mr-3 bg-green-100 p-2 rounded-full">
+            <i class="fas fa-check text-green-500"></i>
+        </div>
+        <div>
+            <h4 class="font-medium text-gray-800">Password Reset</h4>
+            <p class="text-sm text-gray-600">Password has been reset successfully</p>
+        </div>
+    </div>
+    <button onclick="closeNotification()" class="text-gray-400 hover:text-gray-500 focus:outline-none">
+        <i class="fas fa-times"></i>
+    </button>
+</div>
+
+<!-- Add JavaScript for notification handling -->
+
+{% endblock %}
 {% block extra_js %}
 <script src="{{ url_for('static', filename='js/admin/adminmanage.js') }}"></script>
+<script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
 {% endblock %}

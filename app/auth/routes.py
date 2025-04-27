@@ -1,8 +1,11 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, session, request
 from werkzeug.security import check_password_hash, generate_password_hash  
-from flask_login import login_user, logout_user, login_required
+from flask_login import login_user, logout_user, login_required, current_user
+from app.models import User, Student, AuditLog
 from app.models import User, Student  
+from datetime import datetime
 from app.extensions import db  
+from flask_wtf.csrf import CSRFProtect
 
 
 
@@ -19,10 +22,25 @@ def login():
         user = User.query.filter_by(email=email).first()
         
         if user and check_password_hash(user.password_hash, password):
-            # Replace session with login_user
+            # Successful login
             login_user(user)
             flash('Login successful!', 'success')
 
+            # Log successful login
+            log = AuditLog(
+                actor_id=user.id,  # Changed from user_id to actor_id
+                actor_role=user.role,  # Added actor_role
+                action='Logged in',
+                target_type='authentication',
+                status_snapshot='success',
+                is_success=True,
+                ip_address=request.remote_addr,
+                user_agent=request.user_agent.string if request.user_agent else None
+            )
+            db.session.add(log)
+            db.session.commit()
+            
+            # Redirect based on role
             if user.role == 'super_admin':
                 return redirect(url_for('admin.dashboard')) 
             elif user.role == 'office_admin':
@@ -33,12 +51,25 @@ def login():
                 flash('Unknown user role.', 'danger')
                 return redirect(url_for('auth.login'))
         else:
+            # Failed login attempt
+            log = AuditLog(
+                actor_id=user.id if user else None,  # Changed from user_id to actor_id
+                actor_role=user.role if user else None,  # Added actor_role
+                action='Failed login attempt',
+                target_type='authentication',
+                status_snapshot='failed',
+                is_success=False,
+                ip_address=request.remote_addr,
+                user_agent=request.user_agent.string if request.user_agent else None,
+                failure_reason='Invalid credentials'  # Added failure reason
+            )
+            db.session.add(log)
+            db.session.commit()
+            
             flash('Invalid email or password', 'danger')
             return render_template('auth/login.html')
     
     return render_template('auth/login.html')
-
-
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
@@ -96,7 +127,22 @@ def register():
 
 
 @auth_bp.route('/logout')
+@login_required 
 def logout():
+    
+    log = AuditLog(
+        actor_id=current_user.id,
+        actor_role=current_user.role,
+        action='Logged out',
+        target_type='authentication',
+        status_snapshot='success',
+        is_success=True,
+        ip_address=request.remote_addr,
+        user_agent=request.user_agent.string if request.user_agent else None
+    )
+    db.session.add(log)
+    db.session.commit()
+    
     logout_user()
     flash('You have been logged out.', 'success')
     return redirect(url_for('auth.login'))

@@ -1,5 +1,5 @@
 from app.models import Inquiry, InquiryMessage, User, Office, db, OfficeAdmin, Student, CounselingSession, StudentActivityLog, SuperAdminActivityLog, OfficeLoginLog, AuditLog
-from flask import Blueprint, redirect, url_for, render_template, jsonify, request, flash, Response
+from flask import Blueprint, redirect, url_for, render_template, jsonify, request, flash, Response, current_app
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import login_required, current_user
 from flask_socketio import emit
@@ -11,8 +11,6 @@ import random
 import os
 from app.admin import admin_bp
 
-
-
 ############################################## ADMIN MANAGE #############################################
 
 @admin_bp.route('/adminmanage')
@@ -20,7 +18,6 @@ def adminmanage():
     offices = Office.query.all()
     office_admins = User.query.filter_by(role='office_admin').all()
     
-    # For quick stats
     total_offices = len(offices)
     active_office_admins = User.query.filter_by(role='office_admin', is_active=True).count()
     unassigned_offices = Office.query.filter(~Office.office_admins.any()).count()
@@ -38,10 +35,9 @@ def adminmanage():
 
 @admin_bp.route('/api/office/<int:office_id>/admins')
 def get_office_admins(office_id):
-    # Get the office
+
     office = Office.query.get_or_404(office_id)
     
-    # Get all admins associated with this office
     office_admins = office.office_admins
     admins_data = []
     
@@ -90,6 +86,11 @@ def remove_office_admin():
         db.session.delete(office_admin)
         db.session.commit()
         
+        socketio.emit('admin_office_updated', {
+            'admin_id': admin_id,
+            'office': None
+        }, room='admin_room')
+        
         return jsonify({
             'success': True, 
             'message': f'Admin {admin.first_name} {admin.last_name} has been removed from {office.name}'
@@ -99,11 +100,9 @@ def remove_office_admin():
         db.session.rollback()
         return jsonify({'success': False, 'message': str(e)}), 500
 
-
 @admin_bp.route('/add_admin', methods=['POST'])
 def add_admin():
     try:
-        # Get form data
         first_name = request.form.get('first_name', '').strip()
         middle_name = request.form.get('middle_name', '')  # Optional
         last_name = request.form.get('last_name', '').strip()
@@ -112,10 +111,8 @@ def add_admin():
         confirm_password = request.form.get('confirm_password')
         office_id = request.form.get('office_id')
         
-        # Set is_active to False by default for new admins
         is_active = False
         
-        # Validate required fields aren't empty
         if not first_name:
             return jsonify({'success': False, 'message': 'First name is required'}), 400
         if not last_name:
@@ -136,14 +133,11 @@ def add_admin():
         if 'profile_pic' in request.files:
             profile_pic = request.files['profile_pic']
             if profile_pic and profile_pic.filename != '':
-                # Save profile picture
                 filename = secure_filename(profile_pic.filename)
-                # Create upload folder if it doesn't exist
                 upload_folder = os.path.join(current_app.root_path, 'static/uploads/profiles')
                 if not os.path.exists(upload_folder):
                     os.makedirs(upload_folder)
                 
-                # Save file
                 profile_pic_path = os.path.join('uploads/profiles', filename)
                 profile_pic.save(os.path.join(current_app.root_path, 'static', profile_pic_path))
         
@@ -161,6 +155,7 @@ def add_admin():
         db.session.add(new_user)
         db.session.flush()
         
+        office_name = None
         if office_id and office_id != '':
             office = Office.query.get(office_id)
             if office:
@@ -169,8 +164,34 @@ def add_admin():
                     office_id=int(office_id)
                 )
                 db.session.add(office_admin)
+                office_name = office.name
         
         db.session.commit()
+        
+        total_offices = Office.query.count()
+        active_office_admins = User.query.filter_by(role='office_admin', is_active=True).count()
+        unassigned_offices = Office.query.filter(~Office.office_admins.any()).count()
+        unassigned_admins = User.query.filter_by(role='office_admin').filter(~User.office_admin.has()).count()
+        
+        socketio.emit('admin_added', {
+            'admin': {
+                'id': new_user.id,
+                'first_name': new_user.first_name,
+                'middle_name': new_user.middle_name,
+                'last_name': new_user.last_name,
+                'email': new_user.email,
+                'is_active': new_user.is_active,
+                'office_name': office_name,
+                'profile_pic': new_user.profile_pic
+            },
+            'stats': {
+                'total_offices': total_offices,
+                'active_office_admins': active_office_admins,
+                'unassigned_offices': unassigned_offices,
+                'unassigned_admins': unassigned_admins
+            }
+        }, room='admin_room')
+        
         return jsonify({'success': True, 'message': 'Office admin added successfully'})
         
     except Exception as e:
@@ -186,7 +207,6 @@ def get_admin_data(admin_id):
         if not admin:
             return jsonify({'success': False, 'message': 'Admin not found'}), 404
         
-        # Get office assignment
         office_admin = OfficeAdmin.query.filter_by(user_id=admin_id).first()
         office_id = office_admin.office_id if office_admin else None
         
@@ -199,7 +219,8 @@ def get_admin_data(admin_id):
                 'last_name': admin.last_name,
                 'email': admin.email,
                 'is_active': admin.is_active,
-                'office_id': office_id
+                'office_id': office_id,
+                'profile_pic': admin.profile_pic
             }
         })
     
@@ -221,9 +242,23 @@ def delete_admin():
             flash('Admin not found', 'error')
             return redirect(url_for('admin.adminmanage'))
         
-        # Delete the admin
         db.session.delete(admin)
         db.session.commit()
+        
+        total_offices = Office.query.count()
+        active_office_admins = User.query.filter_by(role='office_admin', is_active=True).count()
+        unassigned_offices = Office.query.filter(~Office.office_admins.any()).count()
+        unassigned_admins = User.query.filter_by(role='office_admin').filter(~User.office_admin.has()).count()
+        
+        socketio.emit('admin_deleted', {
+            'admin_id': admin_id,
+            'stats': {
+                'total_offices': total_offices,
+                'active_office_admins': active_office_admins,
+                'unassigned_offices': unassigned_offices,
+                'unassigned_admins': unassigned_admins
+            }
+        }, room='admin_room')
         
         flash('Admin deleted successfully', 'success')
     except Exception as e:
@@ -237,7 +272,6 @@ def manage_admins():
     offices = Office.query.all()
     office_admins = User.query.filter_by(role='office_admin').all()
     
-    # For quick stats
     total_offices = len(offices)
     active_office_admins = User.query.filter_by(role='office_admin', is_active=True).count()
     unassigned_offices = Office.query.filter(~Office.office_admins.any()).count()
@@ -256,7 +290,6 @@ def manage_admins():
 @admin_bp.route('/update_admin', methods=['POST'])
 def update_admin():
     try:
-        # Get form data
         admin_id = request.form.get('admin_id')
         first_name = request.form.get('first_name')
         middle_name = request.form.get('middle_name', '')
@@ -276,50 +309,115 @@ def update_admin():
         if existing_user:
             return jsonify({'success': False, 'message': 'Email already exists for another user'}), 400
         
-        # Update profile picture if provided
+        status_changed = admin.is_active != is_active
+        previous_active_status = admin.is_active
+        
         if 'profile_pic' in request.files:
             profile_pic = request.files['profile_pic']
             if profile_pic and profile_pic.filename != '':
-                # Save profile picture
                 filename = secure_filename(profile_pic.filename)
-                # Create upload folder if it doesn't exist
+
                 upload_folder = os.path.join(current_app.root_path, 'static/uploads/profiles')
                 if not os.path.exists(upload_folder):
                     os.makedirs(upload_folder)
                 
-                # Save file
-                profile_pic_path = os.path.join('uploads/profiles', filename)
+                profile_pic_path = os.path.join('uploads/profiles', filename).replace("\\", "/")
                 profile_pic.save(os.path.join(current_app.root_path, 'static', profile_pic_path))
-                
-                # Update the admin's profile pic path
+
                 admin.profile_pic = profile_pic_path
         
-        # Update admin user information
         admin.first_name = first_name
         admin.middle_name = middle_name
         admin.last_name = last_name
         admin.email = email
         admin.is_active = is_active
         
-        # Update office assignment if provided
+        office_changed = False
+        new_office = None
+        
         if office_id:
-            # Check if admin already has an office assignment
+
             existing_office_admin = OfficeAdmin.query.filter_by(user_id=admin_id).first()
             
             if existing_office_admin:
-                # Update existing assignment
+                if existing_office_admin.office_id != int(office_id):
+                    office_changed = True
+                    
                 existing_office_admin.office_id = int(office_id)
+                
+
+                new_office = Office.query.get(int(office_id))
             else:
-                # Create new assignment
+                
                 new_office_admin = OfficeAdmin(
                     user_id=admin_id,
                     office_id=int(office_id)
                 )
                 db.session.add(new_office_admin)
+                office_changed = True
+                
+                new_office = Office.query.get(int(office_id))
         
-        # Commit changes to database
         db.session.commit()
         
+        stats = None
+        if status_changed:
+            total_offices = Office.query.count()
+            active_office_admins = User.query.filter_by(role='office_admin', is_active=True).count()
+            unassigned_offices = Office.query.filter(~Office.office_admins.any()).count()
+            unassigned_admins = User.query.filter_by(role='office_admin').filter(~User.office_admin.has()).count()
+            
+            stats = {
+                'total_offices': total_offices,
+                'active_office_admins': active_office_admins,
+                'unassigned_offices': unassigned_offices,
+                'unassigned_admins': unassigned_admins
+            }
+            
+
+            socketio.emit('admin_status_updated', {
+                'admin_id': admin_id,
+                'is_active': is_active,
+                'stats': stats
+            }, room='admin_room')
+
+        office_admin = OfficeAdmin.query.filter_by(user_id=admin_id).first()
+        office_name = None
+        if office_admin:
+            office = Office.query.get(office_admin.office_id)
+            if office:
+                office_name = office.name
+        
+        socketio.emit('admin_updated', {
+            'admin': {
+                'id': admin.id,
+                'first_name': admin.first_name,
+                'middle_name': admin.middle_name,
+                'last_name': admin.last_name,
+                'email': admin.email,
+                'is_active': admin.is_active,
+                'office_name': office_name,
+                'profile_pic': admin.profile_pic
+            }
+        }, room='admin_room')
+        
+        if office_changed and new_office:
+            socketio.emit('admin_office_updated', {
+                'admin_id': admin_id,
+                'office': {
+                    'id': new_office.id,
+                    'name': new_office.name
+                }
+            }, room='admin_room')
+
+            socketio.emit('admin_office_updated', {
+                 'admin_id': admin_id,
+                 'office': {
+                 'id': new_office.id,
+                 'name': new_office.name
+                }
+            }, room='admin_room')
+
         return jsonify({'success': True, 'message': 'Admin updated successfully'})
         
     except Exception as e:
@@ -338,11 +436,9 @@ def reset_admin_password():
         if not admin:
             return jsonify({'success': False, 'message': 'Admin not found'}), 404
         
-        # Generate a 4-digit default password
         import random
         default_password = ''.join(random.choices('0123456789', k=4))
         
-        # Update password
         admin.password_hash = generate_password_hash(default_password)
         db.session.commit()
         
@@ -368,3 +464,10 @@ def get_offices():
     
     except Exception as e:
         return jsonify({'success': False, 'message': f'Error fetching offices: {str(e)}'}), 500
+
+@socketio.on('join')
+def on_join(data):
+    room = data['room']
+    if room == 'admin_room':
+        from flask_socketio import join_room
+        join_room(room)

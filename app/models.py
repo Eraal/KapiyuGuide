@@ -32,19 +32,16 @@ class User(db.Model, UserMixin):
             return f"{self.first_name} {self.middle_name} {self.last_name}"
         return f"{self.first_name} {self.last_name}"
 
-
 class Office(db.Model):
     __tablename__ = 'offices'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False, index=True)
     description = db.Column(db.Text)
     supports_video = db.Column(db.Boolean, default=False)
-
     office_admins = db.relationship('OfficeAdmin', back_populates='office', lazy=True)
     inquiries = db.relationship('Inquiry', back_populates='office', lazy=True)
     counseling_sessions = db.relationship('CounselingSession', back_populates='office', lazy=True)
     announcements = db.relationship('Announcement', back_populates='target_office', lazy=True)
-
 
 class OfficeAdmin(db.Model):
     __tablename__ = 'office_admins'
@@ -54,7 +51,6 @@ class OfficeAdmin(db.Model):
 
     user = db.relationship('User', back_populates='office_admin')
     office = db.relationship('Office', back_populates='office_admins')
-
 
 class Student(db.Model):
     __tablename__ = 'students'
@@ -136,9 +132,20 @@ class Announcement(db.Model):
 
     author = db.relationship('User', back_populates='announcements')
     target_office = db.relationship('Office', back_populates='announcements')
+    images = db.relationship('AnnouncementImage', back_populates='announcement', lazy=True, cascade='all, delete-orphan')
 
+class AnnouncementImage(db.Model):
+    __tablename__ = 'announcement_images'
+    id = db.Column(db.Integer, primary_key=True)
+    announcement_id = db.Column(db.Integer, db.ForeignKey('announcements.id', ondelete='CASCADE'), nullable=False, index=True)
+    image_path = db.Column(db.String(255), nullable=False)
+    caption = db.Column(db.String(255))
+    display_order = db.Column(db.Integer, default=0)  # For ordering images
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-# Audit log to track all actions by users (students, office admins, super admins)
+    announcement = db.relationship('Announcement', back_populates='images')
+
+# Audit log to track all actions by users (students, office admins, super admins all does they do in system)
 class AuditLog(db.Model, JsonSerializableMixin):
     __tablename__ = 'audit_logs'
     id = db.Column(db.Integer, primary_key=True)
@@ -181,7 +188,6 @@ class AuditLog(db.Model, JsonSerializableMixin):
         db.session.add(log)
         return log
 
-# NEW ADDED AUDIT LOGS
 
 # Student activity log for tracking actions performed by students
 class StudentActivityLog(db.Model, JsonSerializableMixin):

@@ -22,25 +22,22 @@ def update_profile():
         return jsonify({'success': False, 'message': 'Unauthorized'}), 403
     
     try:
-        # Get form data
+
         first_name = request.form.get('first_name')
         middle_name = request.form.get('middle_name')
         last_name = request.form.get('last_name')
         email = request.form.get('email')
         
-        # Validate required fields
         if not first_name or not last_name or not email:
             flash('Please fill all required fields', 'error')
             return redirect(url_for('admin.dashboard'))
         
-        # Check if email is already in use (if changed)
         if email != current_user.email:
             existing_user = User.query.filter_by(email=email).first()
             if existing_user:
                 flash('Email address is already in use', 'error')
                 return redirect(url_for('admin.dashboard'))
         
-        # Update user data
         current_user.first_name = first_name
         current_user.middle_name = middle_name
         current_user.last_name = last_name
@@ -73,28 +70,22 @@ def update_profile_photo():
             return redirect(url_for('admin.dashboard'))
         
         if file:
-            # Define allowed file extensions
             allowed_extensions = {'png', 'jpg', 'jpeg', 'gif'}
             if '.' not in file.filename or file.filename.rsplit('.', 1)[1].lower() not in allowed_extensions:
                 flash('Invalid file format. Please upload a JPG, PNG, or GIF file.', 'error')
                 return redirect(url_for('admin.dashboard'))
             
-            # Create upload directory if it doesn't exist
             upload_dir = os.path.join('app', 'static', 'uploads', 'profile_pics')
             os.makedirs(upload_dir, exist_ok=True)
             
-            # Create unique filename
             timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
             filename = f"user_{current_user.id}_{timestamp}_{secure_filename(file.filename)}"
             filepath = os.path.join(upload_dir, filename)
             
-            # Save the file
             file.save(filepath)
             
-
             db_filepath = os.path.join('uploads', 'profile_pics', filename)
             
-            # Delete old profile pic if exists
             if current_user.profile_pic:
                 old_file_path = os.path.join('app', 'static', current_user.profile_pic)
                 if os.path.exists(old_file_path):
@@ -145,7 +136,6 @@ def change_password():
         new_password = request.form.get('new_password')
         confirm_new_password = request.form.get('confirm_new_password')
         
-        # Validate passwords
         if not current_password or not new_password or not confirm_new_password:
             flash('All password fields are required', 'error')
             return redirect(url_for('admin.dashboard'))
@@ -154,12 +144,10 @@ def change_password():
             flash('New passwords do not match', 'error')
             return redirect(url_for('admin.dashboard'))
         
-        # Verify current password
         if not check_password_hash(current_user.password_hash, current_password):
             flash('Current password is incorrect', 'error')
             return redirect(url_for('admin.dashboard'))
         
-        # Update password
         current_user.password_hash = generate_password_hash(new_password)
         db.session.commit()
         

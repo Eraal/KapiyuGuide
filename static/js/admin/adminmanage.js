@@ -1,4 +1,15 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize filters
+    initializeFilters();
+    // Initialize forms
+    initializeForms();
+    // Setup modal handlers
+    setupModalHandlers();
+    // Setup WebSocket connection
+    setupWebSocket();
+});
+
+function initializeFilters() {
     const statusFilter = document.getElementById('statusFilter');
     const sortFilter = document.getElementById('sortFilter');
     const searchInput = document.getElementById('adminSearchInput');
@@ -6,99 +17,342 @@ document.addEventListener('DOMContentLoaded', function() {
     if (statusFilter) statusFilter.addEventListener('change', filterAdmins);
     if (sortFilter) sortFilter.addEventListener('change', filterAdmins);
     if (searchInput) searchInput.addEventListener('input', filterAdmins);
-
-    const addAdminForm = document.getElementById('addAdminForm');
-    if (addAdminForm) {
-        addAdminForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-
-            if (!validateForm()) {
-                return false;
-            }
-            
-            const formData = new FormData(this);
-
-            const submitButton = this.querySelector('button[type="submit"]');
-            const originalText = submitButton.innerHTML;
-            submitButton.disabled = true;
-            submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
-            
-            fetch(this.action, {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => {
-                if (response.redirected) {
-                    window.location.href = response.url;
-                } else {
-                    return response.json().then(data => {
-                        if (data.success) {
-                            showNotification('Admin added successfully', 'success');
-                            closeAddAdminModal();
-
-                            setTimeout(() => {
-                                window.location.reload();
-                            }, 1000);
-                        } else {
-                            showNotification(data.message || 'Error adding admin', 'error');
-
-                            submitButton.disabled = false;
-                            submitButton.innerHTML = originalText;
-                        }
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showNotification('An error occurred while adding admin', 'error');
-
-                submitButton.disabled = false;
-                submitButton.innerHTML = originalText;
-            });
-        });
-    }
-    
-    function filterAdmins() {
-        const statusValue = statusFilter.value;
-        const sortValue = sortFilter.value;
-        const searchValue = searchInput.value.toLowerCase();
-        const rows = document.querySelectorAll('#adminTableBody tr');
-        
-        rows.forEach(row => {
-            const office = row.cells[0].textContent.trim().toLowerCase();
-            const name = row.cells[1].textContent.trim().toLowerCase();
-            const email = row.cells[2].textContent.trim().toLowerCase();
-            const status = row.cells[3].textContent.trim().toLowerCase();
-            
-            let showRow = true;
-            if (statusValue !== 'all') {
-                showRow = status === statusValue;
-            }
-            
-            if (showRow && searchValue) {
-                showRow = office.includes(searchValue) || 
-                          name.includes(searchValue) || 
-                          email.includes(searchValue);
-            }
-            
-            row.style.display = showRow ? '' : 'none';
-        });
-    }
-});
-
-// Show notification function
-function showNotification(message, type) {
-    const notification = document.createElement('div');
-    notification.className = `fixed top-4 right-4 px-6 py-3 rounded shadow-lg ${type === 'success' ? 'bg-green-500' : 'bg-red-500'} text-white`;
-    notification.textContent = message;
-    
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-        notification.remove();
-    }, 3000);
 }
 
+function filterAdmins() {
+    const statusFilter = document.getElementById('statusFilter');
+    const sortFilter = document.getElementById('sortFilter');
+    const searchInput = document.getElementById('adminSearchInput');
+    
+    const statusValue = statusFilter.value;
+    const sortValue = sortFilter.value;
+    const searchValue = searchInput.value.toLowerCase();
+    const rows = document.querySelectorAll('#adminTableBody tr');
+    
+    rows.forEach(row => {
+        const office = row.cells[0].textContent.trim().toLowerCase();
+        const name = row.cells[1].textContent.trim().toLowerCase();
+        const email = row.cells[2].textContent.trim().toLowerCase();
+        const status = row.cells[3].textContent.trim().toLowerCase();
+        
+        let showRow = true;
+        if (statusValue !== 'all') {
+            showRow = status === statusValue;
+        }
+        
+        if (showRow && searchValue) {
+            showRow = office.includes(searchValue) || 
+                      name.includes(searchValue) || 
+                      email.includes(searchValue);
+        }
+        
+        row.style.display = showRow ? '' : 'none';
+    });
+}
+
+function initializeForms() {
+    // Initialize the add admin form
+    const addAdminForm = document.getElementById('addAdminForm');
+    if (addAdminForm) {
+        addAdminForm.addEventListener('submit', handleFormSubmit);
+    }
+    
+    // Initialize the edit admin form
+    const editAdminForm = document.getElementById('editAdminForm');
+    if (editAdminForm) {
+        editAdminForm.addEventListener('submit', handleFormSubmit);
+    }
+    
+    // Setup profile picture preview
+    const profilePicInput = document.getElementById('edit_profile_pic');
+    if (profilePicInput) {
+        profilePicInput.addEventListener('change', function(event) {
+            updateProfilePreview(event, 'edit_profile_preview');
+        });
+    }
+}
+
+function handleFormSubmit(e) {
+    e.preventDefault();
+    
+    if (this.id === 'addAdminForm' && !validateForm()) {
+        return false;
+    }
+    
+    const submitButton = this.querySelector('button[type="submit"]');
+    const originalText = submitButton.innerHTML;
+    submitButton.disabled = true;
+    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+    
+    const formData = new FormData(this);
+    
+    // Debug: Log form data
+    console.log('Form action:', this.action);
+    console.log('Form ID:', this.id);
+    for (let pair of formData.entries()) {
+        console.log(pair[0] + ': ' + pair[1]);
+    }
+    
+    fetch(this.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            // Don't set Content-Type for FormData
+            'X-CSRFToken': getCsrfToken()
+        }
+    })
+    .then(response => {
+        // Check if response is ok before trying to parse JSON
+        if (!response.ok) {
+            return response.text().then(text => {
+                console.error('Server error response:', text);
+                throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
+            });
+        }
+        
+        if (response.redirected) {
+            window.location.href = response.url;
+            return { success: true, redirected: true };
+        } 
+        
+        return response.json();
+    })
+    .then(data => {
+        if (data.redirected) return; // Already handled
+        
+        if (data.success) {
+            const message = this.id === 'addAdminForm' ? 
+                'Admin added successfully' : 'Admin updated successfully';
+            showNotification(message, 'success');
+            
+            if (this.id === 'addAdminForm') {
+                closeAddAdminModal();
+            } else {
+                closeEditAdminModal();
+            }
+        } else {
+            const errorMsg = data.message || 
+                (this.id === 'addAdminForm' ? 'Error adding admin' : 'Error updating admin');
+            showNotification(errorMsg, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        const errorMsg = this.id === 'addAdminForm' ? 
+            'An error occurred while adding admin' : 'An error occurred while updating admin';
+        showNotification(errorMsg, 'error');
+    })
+    .finally(() => {
+        submitButton.disabled = false;
+        submitButton.innerHTML = originalText;
+    });
+}
+
+function setupModalHandlers() {
+    // Add event listeners for delete confirmation
+    const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+    if (cancelDeleteBtn) {
+        cancelDeleteBtn.addEventListener('click', function() {
+            document.getElementById('deleteConfirmModal').classList.add('hidden');
+        });
+    }
+}
+
+// WebSocket Setup and Handlers
+function setupWebSocket() {
+    // Check if socket.io library is loaded
+    if (typeof io === 'undefined') {
+        console.error('Socket.io library not loaded');
+        return;
+    }
+
+    // Get current user email from the page (you'll need to add this)
+    const userEmail = document.getElementById('currentUserEmail')?.value || 'Unknown user';
+    
+    // Connect to WebSocket server
+    const socket = io();
+    
+    // Connection opened
+    socket.on('connect', function() {
+        
+        
+        console.log('WebSocket connection established');
+        console.log('Connected to WebSocket server with ID:', socket.id);
+        socket.emit('join', { room: 'join_admin_room' });
+    });
+    
+    // Connection error
+    socket.on('connect_error', function(error) {
+        console.error('WebSocket connection error:', error);
+        showNotification('WebSocket connection failed. Real-time updates disabled.', 'error');
+    });
+    
+    // Listen for admin updated event
+    socket.on('admin_updated', function(data) {
+        
+        adminManage_updateAdminRow(data.admin);
+        showNotification(`Admin ${data.admin.first_name} ${data.admin.last_name} has been updated`, 'info');
+    });
+    
+    // Listen for admin added event
+    socket.on('admin_added', function(data) {
+        console.log('Received admin_added event:', data);
+        adminManage_addAdminRow(data.admin);
+        adminManage_updateStatsCounter(data.stats);
+        showNotification(`New admin ${data.admin.first_name} ${data.admin.last_name} has been added`, 'success');
+    });
+    
+    // Listen for admin deleted event
+    socket.on('admin_deleted', function(data) {
+        adminManage_removeAdminRow(data.admin_id);
+        adminManage_updateStatsCounter(data.stats);
+        showNotification(`Admin has been deleted`, 'info');
+    });
+    
+    // Listen for admin office assignment updated
+    socket.on('admin_office_updated', function(data) {
+        adminManage_updateAdminOffice(data.admin_id, data.office);
+        showNotification(`Admin office assignment updated`, 'info');
+    });
+    
+    // Listen for admin status updated
+    socket.on('admin_status_updated', function(data) {
+        adminManage_updateAdminStatus(data.admin_id, data.is_active);
+        adminManage_updateStatsCounter(data.stats);
+        showNotification(`Admin status updated`, 'info');
+    });
+}
+
+// WebSocket event handlers with prefixed function names
+function adminManage_updateAdminRow(admin) {
+    const row = document.querySelector(`#adminTableBody tr[data-admin-id="${admin.id}"]`);
+    if (row) {
+        // Update office
+        if (admin.office_name) {
+            row.cells[0].textContent = admin.office_name;
+        } else {
+            row.cells[0].innerHTML = '<span class="text-gray-400 italic">Unassigned</span>';
+        }
+        
+        // Update name
+        row.cells[1].textContent = `${admin.first_name} ${admin.middle_name ? admin.middle_name + ' ' : ''}${admin.last_name}`;
+        
+        // Update email
+        row.cells[2].textContent = admin.email;
+        
+        // Update status
+        const statusCell = row.cells[3];
+        if (admin.is_active) {
+            statusCell.innerHTML = '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Active</span>';
+        } else {
+            statusCell.innerHTML = '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Inactive</span>';
+        }
+    }
+}
+
+function adminManage_addAdminRow(admin) {
+    const tableBody = document.getElementById('adminTableBody');
+    if (tableBody) {
+        const newRow = document.createElement('tr');
+        newRow.setAttribute('data-admin-id', admin.id);
+        newRow.className = 'bg-white border-b hover:bg-gray-50';
+        
+        // Office column
+        const officeCell = document.createElement('td');
+        officeCell.className = 'px-6 py-4 whitespace-nowrap';
+        if (admin.office_name) {
+            officeCell.textContent = admin.office_name;
+        } else {
+            officeCell.innerHTML = '<span class="text-gray-400 italic">Unassigned</span>';
+        }
+        newRow.appendChild(officeCell);
+        
+        // Name column
+        const nameCell = document.createElement('td');
+        nameCell.className = 'px-6 py-4 whitespace-nowrap';
+        nameCell.textContent = `${admin.first_name} ${admin.middle_name ? admin.middle_name + ' ' : ''}${admin.last_name}`;
+        newRow.appendChild(nameCell);
+        
+        // Email column
+        const emailCell = document.createElement('td');
+        emailCell.className = 'px-6 py-4 whitespace-nowrap';
+        emailCell.textContent = admin.email;
+        newRow.appendChild(emailCell);
+        
+        // Status column
+        const statusCell = document.createElement('td');
+        statusCell.className = 'px-6 py-4 whitespace-nowrap';
+        if (admin.is_active) {
+            statusCell.innerHTML = '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Active</span>';
+        } else {
+            statusCell.innerHTML = '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Inactive</span>';
+        }
+        newRow.appendChild(statusCell);
+        
+        // Actions column
+        const actionsCell = document.createElement('td');
+        actionsCell.className = 'px-6 py-4 whitespace-nowrap text-right text-sm font-medium';
+        actionsCell.innerHTML = `
+            <a href="#" onclick="openEditAdminModal(${admin.id})" class="text-blue-600 hover:text-blue-900 mr-3">Edit</a>
+            <a href="#" onclick="confirmDeleteAdmin(${admin.id})" class="text-red-600 hover:text-red-900">Delete</a>
+        `;
+        newRow.appendChild(actionsCell);
+        
+        // Add the new row to the table
+        tableBody.appendChild(newRow);
+    }
+}
+
+function adminManage_removeAdminRow(adminId) {
+    const row = document.querySelector(`#adminTableBody tr[data-admin-id="${adminId}"]`);
+    if (row) {
+        row.remove();
+    }
+}
+
+function adminManage_updateAdminOffice(adminId, office) {
+    const row = document.querySelector(`#adminTableBody tr[data-admin-id="${adminId}"]`);
+    if (row) {
+        const officeCell = row.cells[0];
+        if (office && office.name) {
+            officeCell.textContent = office.name;
+        } else {
+            officeCell.innerHTML = '<span class="text-gray-400 italic">Unassigned</span>';
+        }
+    }
+}
+
+function adminManage_updateAdminStatus(adminId, isActive) {
+    const row = document.querySelector(`#adminTableBody tr[data-admin-id="${adminId}"]`);
+    if (row) {
+        const statusCell = row.cells[3];
+        if (isActive) {
+            statusCell.innerHTML = '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Active</span>';
+        } else {
+            statusCell.innerHTML = '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Inactive</span>';
+        }
+    }
+}
+
+function adminManage_updateStatsCounter(stats) {
+    if (stats) {
+        // Update the stats counters in the dashboard
+        if (stats.total_offices !== undefined) {
+            document.getElementById('totalOfficesCounter').textContent = stats.total_offices;
+        }
+        if (stats.active_office_admins !== undefined) {
+            document.getElementById('activeAdminsCounter').textContent = stats.active_office_admins;
+        }
+        if (stats.unassigned_offices !== undefined) {
+            document.getElementById('unassignedOfficesCounter').textContent = stats.unassigned_offices;
+        }
+        if (stats.unassigned_admins !== undefined) {
+            document.getElementById('unassignedAdminsCounter').textContent = stats.unassigned_admins;
+        }
+    }
+}
+
+// Multi-step form navigation
 let currentStep = 1;
 
 function nextStep(step) {
@@ -116,29 +370,27 @@ function prevStep(step) {
 }
 
 function updateStepIndicators(activeStep) {
-    document.getElementById('step-info').className = 'flex w-full items-center text-gray-400 after:content-[\'\'] after:w-full after:h-1 after:border-b after:border-gray-300 after:border-2 after:inline-block';
-    document.getElementById('step-info').querySelector('span:first-child').className = 'flex items-center justify-center w-8 h-8 bg-gray-300 rounded-full shrink-0';
+    const stepElements = [
+        { id: 'step-info', step: 1 },
+        { id: 'step-security', step: 2 },
+        { id: 'step-role', step: 3 }
+    ];
     
-    document.getElementById('step-security').className = 'flex w-full items-center text-gray-400 after:content-[\'\'] after:w-full after:h-1 after:border-b after:border-gray-300 after:border-2 after:inline-block';
-    document.getElementById('step-security').querySelector('span:first-child').className = 'flex items-center justify-center w-8 h-8 bg-gray-300 rounded-full shrink-0';
-    
-    document.getElementById('step-role').className = 'flex items-center text-gray-400';
-    document.getElementById('step-role').querySelector('span:first-child').className = 'flex items-center justify-center w-8 h-8 bg-gray-300 rounded-full shrink-0';
-    
-    if (activeStep >= 1) {
-        document.getElementById('step-info').className = 'flex w-full items-center text-blue-800 after:content-[\'\'] after:w-full after:h-1 after:border-b after:border-blue-800 after:border-2 after:inline-block';
-        document.getElementById('step-info').querySelector('span:first-child').className = 'flex items-center justify-center w-8 h-8 bg-blue-800 rounded-full shrink-0 text-white';
-    }
-    
-    if (activeStep >= 2) {
-        document.getElementById('step-security').className = 'flex w-full items-center text-blue-800 after:content-[\'\'] after:w-full after:h-1 after:border-b after:border-blue-800 after:border-2 after:inline-block';
-        document.getElementById('step-security').querySelector('span:first-child').className = 'flex items-center justify-center w-8 h-8 bg-blue-800 rounded-full shrink-0 text-white';
-    }
-    
-    if (activeStep >= 3) {
-        document.getElementById('step-role').className = 'flex items-center text-blue-800';
-        document.getElementById('step-role').querySelector('span:first-child').className = 'flex items-center justify-center w-8 h-8 bg-blue-800 rounded-full shrink-0 text-white';
-    }
+    stepElements.forEach(element => {
+        const el = document.getElementById(element.id);
+        const isActive = activeStep >= element.step;
+        
+        // Update main element class
+        el.className = isActive ? 
+            `flex ${element.id !== 'step-role' ? 'w-full' : ''} items-center text-blue-800 ${element.id !== 'step-role' ? 'after:content-[\'\'] after:w-full after:h-1 after:border-b after:border-blue-800 after:border-2 after:inline-block' : ''}` :
+            `flex ${element.id !== 'step-role' ? 'w-full' : ''} items-center text-gray-400 ${element.id !== 'step-role' ? 'after:content-[\'\'] after:w-full after:h-1 after:border-b after:border-gray-300 after:border-2 after:inline-block' : ''}`;
+        
+        // Update span class
+        const span = el.querySelector('span:first-child');
+        span.className = isActive ?
+            'flex items-center justify-center w-8 h-8 bg-blue-800 rounded-full shrink-0 text-white' :
+            'flex items-center justify-center w-8 h-8 bg-gray-300 rounded-full shrink-0';
+    });
 }
 
 function validatePasswordAndNext() {
@@ -179,7 +431,7 @@ function validateForm() {
     return true;
 }
 
-// Add Admin Modal Functions
+// Modal Functions
 function openAddAdminModal() {
     document.getElementById('addAdminModal').classList.remove('hidden');
     currentStep = 1;
@@ -195,6 +447,53 @@ function openAddAdminModal() {
 
 function closeAddAdminModal() {
     document.getElementById('addAdminModal').classList.add('hidden');
+}
+
+function openEditAdminModal(adminId) {
+    fetch(`/admin/api/admin/${adminId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const admin = data.admin;
+                
+                document.getElementById('edit_admin_id').value = admin.id;
+                document.getElementById('edit_first_name').value = admin.first_name || '';
+                document.getElementById('edit_middle_name').value = admin.middle_name || '';
+                document.getElementById('edit_last_name').value = admin.last_name || '';
+                document.getElementById('edit_email').value = admin.email || '';
+
+                // Handle profile picture
+                const profilePreview = document.getElementById('edit_profile_preview');
+                if (admin.profile_pic) {
+                    profilePreview.src = `/static/${admin.profile_pic}`;
+                } else {
+                    profilePreview.src = '/static/images/default-avatar.png';
+                }
+                
+                if (admin.office_id) {
+                    document.getElementById('edit_office').value = admin.office_id;
+                }
+
+                // Set active status
+                if (admin.is_active) {
+                    document.getElementById('edit_active').checked = true;
+                } else {
+                    document.getElementById('edit_inactive').checked = true;
+                }
+                
+                document.getElementById('editAdminModal').classList.remove('hidden');
+            } else {
+                showNotification(data.message || 'Error fetching admin data', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('An error occurred while fetching admin data', 'error');
+        });
+}
+
+function closeEditAdminModal() {
+    document.getElementById('editAdminModal').classList.add('hidden');
 }
 
 function openOfficeModal(officeId, officeName) {
@@ -247,7 +546,7 @@ function closeOfficeModal() {
 
 function removeOfficeAdmin(officeId, adminId) {
     if (confirm('Are you sure you want to remove this admin from the office?')) {
-        // Get CSRF token from meta tag - adjust if you're using a different CSRF implementation
+        // Get CSRF token from meta tag
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
         
         fetch('/admin/remove_office_admin', {
@@ -266,80 +565,21 @@ function removeOfficeAdmin(officeId, adminId) {
             if (data.success) {
                 // Refresh the admins list
                 openOfficeModal(officeId, document.getElementById('officeModalTitle').textContent.replace(' Office', ''));
-                // Show success message
-                const alertElement = document.createElement('div');
-                alertElement.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow z-50';
-                alertElement.textContent = data.message;
-                document.body.appendChild(alertElement);
-                setTimeout(() => alertElement.remove(), 3000);
+                showNotification(data.message, 'success');
             } else {
-                // Show error message
-                alert('Error: ' + data.message);
+                showNotification(data.message || 'Error removing admin', 'error');
             }
         })
         .catch(error => {
             console.error('Error removing admin:', error);
-            alert('An error occurred while removing the admin');
+            showNotification('An error occurred while removing the admin', 'error');
         });
     }
 }
 
-// Delete Admin Functions
 function confirmDeleteAdmin(adminId) {
     document.getElementById('deleteAdminId').value = adminId;
     document.getElementById('deleteConfirmModal').classList.remove('hidden');
-    
-    document.getElementById('cancelDeleteBtn').onclick = function() {
-        document.getElementById('deleteConfirmModal').classList.add('hidden');
-    };
-}
-
-function openEditAdminModal(adminId) {
-    fetch(`/admin/api/admin/${adminId}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                const admin = data.admin;
-                
-                document.getElementById('edit_admin_id').value = admin.id;
-                document.getElementById('edit_first_name').value = admin.first_name || '';
-                document.getElementById('edit_middle_name').value = admin.middle_name || '';
-                document.getElementById('edit_last_name').value = admin.last_name || '';
-                document.getElementById('edit_email').value = admin.email || '';
-
-                if (admin.profile_pic) {
-                    document.getElementById('edit_profile_preview').src = `/static/${admin.profile_pic}`;
-                } else {
-                    document.getElementById('edit_profile_preview').src = '/static/images/default-avatar.png';
-                }
-                
-                if (admin.office_id) {
-                    document.getElementById('edit_office').value = admin.office_id;
-                }
-
-                if (admin.is_active) {
-                    document.getElementById('edit_active').checked = true;
-                } else {
-                    document.getElementById('edit_inactive').checked = true;
-                }
-
-                // Handle profile picture preview - with fixed image handling
-                const profilePreview = document.getElementById('edit_profile_preview');
-                if (admin.profile_pic) {
-                    profilePreview.src = `/static/${admin.profile_pic}`;
-                } else {
-                    profilePreview.src = '/static/images/default.jpg';
-                }
-                
-                document.getElementById('editAdminModal').classList.remove('hidden');
-            } else {
-                showNotification(data.message || 'Error fetching admin data', 'error');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showNotification('An error occurred while fetching admin data', 'error');
-        });
 }
 
 function resetAdminPassword() {
@@ -350,7 +590,7 @@ function resetAdminPassword() {
         return;
     }
     
-    if (!confirm('Are you sure you want to reset this admin\'s password to a default 4-digit code?')) {
+    if (!confirm('Are you sure you want to reset this admin\'s password to a default code?')) {
         return;
     }
     
@@ -373,6 +613,22 @@ function resetAdminPassword() {
         console.error('Error resetting password:', error);
         showPasswordResetMessage('Error resetting password. Please try again.', false);
     });
+}
+
+// Utility functions
+function showNotification(message, type) {
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 px-6 py-3 rounded shadow-lg ${
+        type === 'success' ? 'bg-green-500' : 
+        type === 'error' ? 'bg-red-500' : 
+        type === 'info' ? 'bg-blue-500' : 'bg-gray-500'} text-white`;
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
 }
 
 function showPasswordResetMessage(message, success, password = null) {
@@ -462,103 +718,17 @@ function showPasswordResetMessage(message, success, password = null) {
     }
 }
 
-// Update preview when new profile image is selected
-document.getElementById('edit_profile_pic').addEventListener('change', function(event) {
+function updateProfilePreview(event, previewId) {
     const file = event.target.files[0];
     if (file) {
         const reader = new FileReader();
         reader.onload = function(e) {
-            document.getElementById('edit_profile_preview').src = e.target.result;
+            document.getElementById(previewId).src = e.target.result;
         };
         reader.readAsDataURL(file);
     }
-});
-
-function closeEditAdminModal() {
-    document.getElementById('editAdminModal').classList.add('hidden');
 }
 
-// Helper function to update office options
-function updateOfficeOptions() {
-    fetch('/admin/api/offices')
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                const select = document.getElementById('edit_office');
-                
-                let options = '<option value="">Select Office</option>';
-                
-                data.offices.forEach(office => {
-                    options += `<option value="${office.id}">${office.name}</option>`;
-                });
-                
-                select.innerHTML = options;
-                
-                const previousValue = select.getAttribute('data-value');
-                if (previousValue) {
-                    select.value = previousValue;
-                }
-            }
-        })
-        .catch(error => console.error('Error fetching offices:', error));
+function getCsrfToken() {
+    return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 }
-
-// Add event listener for edit form submission
-document.addEventListener('DOMContentLoaded', function() {
-    const editAdminForm = document.getElementById('editAdminForm');
-    if (editAdminForm) {
-        editAdminForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            console.log("Form submitted");
-            
-            const submitButton = this.querySelector('button[type="submit"]');
-            const originalText = submitButton.innerHTML;
-            submitButton.disabled = true;
-            submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
-            
-            const formData = new FormData(this);
-            
-            for (let pair of formData.entries()) {
-                console.log(pair[0] + ': ' + pair[1]);
-            }
-            
-            fetch(this.action, {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => {
-                console.log("Response received", response);
-                if (response.redirected) {
-                    console.log("Redirecting to", response.url);
-                    window.location.href = response.url;
-                } else {
-                    return response.json().then(data => {
-                        console.log("Response data", data);
-                        if (data.success) {
-                            showNotification('Admin updated successfully', 'success');
-                            closeEditAdminModal();
-
-                            setTimeout(() => {
-                                window.location.reload();
-                            }, 1000);
-                        } else {
-                            showNotification(data.message || 'Error updating admin', 'error');
-
-                            submitButton.disabled = false;
-                            submitButton.innerHTML = originalText;
-                        }
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showNotification('An error occurred while updating admin', 'error');
-
-                submitButton.disabled = false;
-                submitButton.innerHTML = originalText;
-            });
-        });
-    } else {
-        console.error("Edit admin form not found!");
-    }
-});
