@@ -137,76 +137,88 @@
             </div>
         </div>
         
-        <!-- Table -->
-        <div class="overflow-x-auto rounded-lg shadow">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
-                        <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">FULL NAME</th>
-                        <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">EMAIL</th>
-                        <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">STATUS</th>
-                        <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">LAST LOGIN</th>
-                        <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">REGISTERED DATE</th>
-                        <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ACTION</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200" id="studentTableBody">
-                    {% for student in students %}
-                    <tr class="hover:bg-gray-50 transition-colors duration-150">
-                        <td class="py-4 px-4 whitespace-nowrap">{{ loop.index }}</td>
-                        <td class="py-4 px-4 whitespace-nowrap font-medium text-gray-900">
-                            {{ student.user.first_name }} {% if student.user.middle_name %}{{ student.user.middle_name[0] }}. {% endif %}{{ student.user.last_name }}
-                        </td>
-                        <td class="py-4 px-4 whitespace-nowrap text-gray-600">{{ student.user.email }}</td>
-                        <td class="py-4 px-4 whitespace-nowrap">
-                            {% if student.user.is_active %}
-                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Active</span>
+       <!-- Table -->
+<div class="overflow-x-auto rounded-lg shadow">
+    <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+            <tr>
+                <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
+                <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">FULL NAME</th>
+                <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">EMAIL</th>
+                <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">LOGIN STATUS</th>
+                <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ACCOUNT STATUS</th>
+                <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">LAST LOGIN</th>
+                <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">REGISTERED DATE</th>
+                <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ACTION</th>
+            </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200" id="studentTableBody">
+            {% for student in students %}
+            <tr class="hover:bg-gray-50 transition-colors duration-150" data-student-id="{{ student.id }}">
+                <td class="py-4 px-4 whitespace-nowrap">{{ loop.index }}</td>
+                <td class="py-4 px-4 whitespace-nowrap font-medium text-gray-900">
+                    {{ student.user.first_name }} {% if student.user.middle_name %}{{ student.user.middle_name[0] }}. {% endif %}{{ student.user.last_name }}
+                </td>
+                <td class="py-4 px-4 whitespace-nowrap text-gray-600">{{ student.user.email }}</td>
+                <!-- Active/Inactive status (for login permission) -->
+                <td class="py-4 px-4 whitespace-nowrap">
+                    {% if student.user.is_active %}
+                    <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Active</span>
+                    {% else %}
+                    <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Inactive</span>
+                    {% endif %}
+                </td>
+                <!-- Locked/Unlocked status (for rule violations) -->
+                <td class="py-4 px-4 whitespace-nowrap lock-status">
+                    {% if student.user.account_locked %}
+                    <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800" 
+                          title="{{ student.user.lock_reason or 'No reason provided' }}">Locked</span>
+                    {% else %}
+                    <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Unlocked</span>
+                    {% endif %}
+                </td>
+                <td class="py-4 px-4 whitespace-nowrap text-gray-600">
+                    {% if student.user.last_activity %}
+                        {{ student.user.last_activity.strftime('%B %d, %Y %I:%M %p') }}
+                    {% else %}
+                        <span class="text-gray-400">Never</span>
+                    {% endif %}
+                </td>
+                <td class="py-4 px-4 whitespace-nowrap text-gray-600">
+                    {{ student.user.created_at.strftime('%B %d, %Y %I:%M %p') }}
+                </td>
+                <td class="py-4 px-4 whitespace-nowrap">
+                    <div class="flex space-x-2">
+                        <a href="{{ url_for('admin.view_student', student_id=student.id) }}" class="bg-blue-500 hover:bg-blue-600 text-white text-xs px-3 py-1 rounded-md transition-colors duration-200 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                            </svg>
+                            EDIT
+                        </a>
+                       
+                        <!-- Button for locking/unlocking (for rule violations) -->
+                        <button onclick="toggleStudentLock({{ student.id }}, {{ 0 if student.user.account_locked else 1 }})" 
+                                class="lock-button {% if student.user.account_locked %}bg-green-500 hover:bg-green-600{% else %}bg-orange-500 hover:bg-orange-600{% endif %} text-white text-xs px-3 py-1 rounded-md transition-colors duration-200 flex items-center"
+                                {% if student.user.account_locked and student.user.lock_reason %}title="Locked: {{ student.user.lock_reason }} ({{ student.user.locked_at.strftime('%Y-%m-%d %H:%M:%S') }})"{% endif %}>
+                            {% if student.user.account_locked %}
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
+                            UNLOCK
                             {% else %}
-                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Inactive</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+                            </svg>
+                            LOCK
                             {% endif %}
-                        </td>
-                        <td class="py-4 px-4 whitespace-nowrap text-gray-600">
-                            {% if student.last_login %}
-                                {{ student.last_login.strftime('%B %d, %Y %I:%M %p') }}
-                            {% else %}
-                                <span class="text-gray-400">Never</span>
-                            {% endif %}
-                        </td>
-                        <td class="py-4 px-4 whitespace-nowrap text-gray-600">
-                            {{ student.user.created_at.strftime('%B %d, %Y %I:%M %p') }}
-                        </td>
-                        <td class="py-4 px-4 whitespace-nowrap">
-                            <div class="flex space-x-2">
-                                <a href="{{ url_for('admin.view_student', student_id=student.id) }}" class="bg-blue-500 hover:bg-blue-600 text-white text-xs px-3 py-1 rounded-md transition-colors duration-200 flex items-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                    </svg>
-                                    EDIT
-                                </a>
-                                <button onclick="toggleStudentStatus({{ student.id }}, {{ 0 if student.user.is_active else 1 }})" 
-                                    class="{% if student.user.is_active %}bg-red-500 hover:bg-red-600{% else %}bg-green-500 hover:bg-green-600{% endif %} text-white text-xs px-3 py-1 rounded-md transition-colors duration-200 flex items-center">
-                                    
-                                    {% if student.user.is_active %}
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
-                                    </svg>
-                                    
-                                    DEACTIVATE
-                                    {% else %}
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    ACTIVATE
-                                    {% endif %}
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
         
         <!-- Pagination controls -->
         <div class="mt-6 flex flex-col sm:flex-row justify-between items-center">
@@ -233,5 +245,8 @@
         </div>
     </div>
 </div>
+<script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+<script src="/static/js/socket.js"></script>
+<script src="/static/js/admin/websockets/admin_sockets.js"></script>
 <script src="/static/js/admin/student_manage.js"></script>
 {% endblock %}

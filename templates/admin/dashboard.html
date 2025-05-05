@@ -1,348 +1,469 @@
 {% extends "admin/adminbase.html" %}
-
-{% block title %}Dashboard - KapiyuGuide{% endblock %}
-
-{% block content %}
-<div class="p-2  space-y-6 md:space-y-8">
-    <!-- Header with Welcome & Quick Stats -->
-    <div class="bg-gradient-to-r from-blue-900 to-blue-700 rounded-xl shadow-lg p-4 md:p-6 text-white transition-all duration-300 hover:shadow-xl">
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 md:mb-6 gap-4">
-            <div>
-                <h1 class="text-xl md:text-2xl font-bold">Welcome back, {{ current_user.first_name }}</h1>
-                <p class="opacity-90 text-sm md:text-base">Here's what's happening in your system today</p>
-            </div>
-            <div class="flex items-center space-x-2 bg-white/10 rounded-lg px-3 py-2">
-                <span id="current-date" class="text-sm font-medium"></span>
-                <div class="h-8 w-8 rounded-full bg-white/20 flex items-center justify-center">
-                    <i class="fas fa-calendar-alt text-white"></i>
-                </div>
-            </div>
+ {% block title %}Dashboard - KapiyuGuide{%
+endblock %} {% block content %}
+<div class="p-2 space-y-6 md:space-y-8">
+  <!-- Header with Welcome & Quick Stats -->
+  <div
+    class="bg-gradient-to-r from-blue-900 to-blue-700 rounded-xl shadow-lg p-4 md:p-6 text-white transition-all duration-300 hover:shadow-xl"
+  >
+    <div
+      class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 md:mb-6 gap-4"
+    >
+      <div>
+        <h1 class="text-xl md:text-2xl font-bold">
+          Welcome back, {{ current_user.first_name }}
+        </h1>
+        <p class="opacity-90 text-sm md:text-base">
+          Here's what's happening in your system today
+        </p>
+      </div>
+      <div class="flex items-center space-x-2 bg-white/10 rounded-lg px-3 py-2">
+        <span id="current-date" class="text-sm font-medium"></span>
+        <div
+          class="h-8 w-8 rounded-full bg-white/20 flex items-center justify-center"
+        >
+          <i class="fas fa-calendar-alt text-white"></i>
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
-            <div class="bg-white/10 rounded-lg p-4 flex items-center transform transition-all duration-300 hover:bg-white/15 hover:translate-y-[-2px]">
-                <div class="mr-4 h-12 w-12 rounded-full bg-purple-200 text-purple-700 flex items-center justify-center">
-                    <i class="fas fa-user-graduate text-xl"></i>
-                </div>
-                <div>
-                    <p class="text-sm text-white/80">Total Students</p>
-                    <p class="text-2xl font-bold">{{ total_students }}</p>
-                </div>
-            </div>
-            <div class="bg-white/10 rounded-lg p-4 flex items-center transform transition-all duration-300 hover:bg-white/15 hover:translate-y-[-2px]">
-                <div class="mr-4 h-12 w-12 rounded-full bg-yellow-200 text-yellow-700 flex items-center justify-center">
-                    <i class="fas fa-envelope-open-text text-xl"></i>
-                </div>
-                <div>
-                    <p class="text-sm text-white/80">Active Inquiries</p>
-                    <p class="text-2xl font-bold">{{ pending_inquiries }}</p>
-                </div>
-            </div>
-            <div class="bg-white/10 rounded-lg p-4 flex items-center transform transition-all duration-300 hover:bg-white/15 hover:translate-y-[-2px]">
-                <div class="mr-4 h-12 w-12 rounded-full bg-green-200 text-green-700 flex items-center justify-center">
-                    <i class="fas fa-check-circle text-xl"></i>
-                </div>
-                <div>
-                    <p class="text-sm text-white/80">Resolution Rate</p>
-                    <p class="text-2xl font-bold">
-                        {% if total_inquiries > 0 %}
-                            {{ (resolved_inquiries / total_inquiries * 100) | round(1) }}%
-                        {% else %}
-                            0%
-                        {% endif %}
-                    </p>
-                </div>
-            </div>
+      </div>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+      <div
+        class="bg-white/10 rounded-lg p-4 flex items-center transform transition-all duration-300 hover:bg-white/15 hover:translate-y-[-2px]"
+      >
+        <div
+          class="mr-4 h-12 w-12 rounded-full bg-purple-200 text-purple-700 flex items-center justify-center"
+        >
+          <i class="fas fa-user-graduate text-xl"></i>
         </div>
+        <div>
+          <p class="text-sm text-white/80">Total Students</p>
+          <p class="text-2xl font-bold">{{ total_students }}</p>
+        </div>
+      </div>
+      <div
+        class="bg-white/10 rounded-lg p-4 flex items-center transform transition-all duration-300 hover:bg-white/15 hover:translate-y-[-2px]"
+      >
+        <div
+          class="mr-4 h-12 w-12 rounded-full bg-yellow-200 text-yellow-700 flex items-center justify-center"
+        >
+          <i class="fas fa-envelope-open-text text-xl"></i>
+        </div>
+        <div>
+          <p class="text-sm text-white/80">Active Inquiries</p>
+          <p class="text-2xl font-bold">{{ pending_inquiries }}</p>
+        </div>
+      </div>
+      <div
+        class="bg-white/10 rounded-lg p-4 flex items-center transform transition-all duration-300 hover:bg-white/15 hover:translate-y-[-2px]"
+      >
+        <div
+          class="mr-4 h-12 w-12 rounded-full bg-green-200 text-green-700 flex items-center justify-center"
+        >
+          <i class="fas fa-check-circle text-xl"></i>
+        </div>
+        <div>
+          <p class="text-sm text-white/80">Resolution Rate</p>
+          <p class="text-2xl font-bold">
+            {% if total_inquiries > 0 %} {{ (resolved_inquiries /
+            total_inquiries * 100) | round(1) }}% {% else %} 0% {% endif %}
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Dashboard Grid -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+    <!-- Left Column - System Stats -->
+    <div class="lg:col-span-2 space-y-6 md:space-y-8">
+      <!-- System-wide Stats Section -->
+      <section
+        class="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg"
+      >
+        <div class="bg-gray-50 px-4 md:px-6 py-4 border-b">
+          <h2 class="text-lg font-bold text-gray-800 flex items-center">
+            <i class="fas fa-chart-pie mr-2 text-red-700"></i>
+            System Overview
+          </h2>
+        </div>
+        <div class="p-4 md:p-6">
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <!-- Total Students -->
+            <div
+              class="bg-gray-50 rounded-lg p-4 border-l-4 border-purple-500 transition-all duration-300 hover:bg-gray-100"
+            >
+              <div class="flex justify-between items-center mb-2">
+                <h3 class="text-sm font-medium text-gray-700">STUDENTS</h3>
+                <span class="text-purple-600 text-lg"
+                  ><i class="fas fa-user-graduate"></i
+                ></span>
+              </div>
+              <p class="text-2xl font-bold text-gray-800">
+                {{ total_students }}
+              </p>
+              <a
+                href="{{ url_for('admin.student_manage') }}"
+                class="text-xs text-purple-600 hover:underline mt-2 inline-block"
+              >
+                View all students →
+              </a>
+            </div>
+
+            <!-- Total Office Admins -->
+            <div
+              class="bg-gray-50 rounded-lg p-4 border-l-4 border-rose-500 transition-all duration-300 hover:bg-gray-100"
+            >
+              <div class="flex justify-between items-center mb-2">
+                <h3 class="text-sm font-medium text-gray-700">OFFICE ADMINS</h3>
+                <span class="text-rose-600 text-lg"
+                  ><i class="fas fa-user-tie"></i
+                ></span>
+              </div>
+              <p class="text-2xl font-bold text-gray-800">
+                {{ total_office_admins }}
+              </p>
+              <a
+                href="{{ url_for('admin.office_stats') }}"
+                class="text-xs text-rose-600 hover:underline mt-2 inline-block"
+              >
+                Manage admins →
+              </a>
+            </div>
+
+            <!-- Total Inquiries -->
+            <div
+              class="bg-gray-50 rounded-lg p-4 border-l-4 border-sky-500 transition-all duration-300 hover:bg-gray-100"
+            >
+              <div class="flex justify-between items-center mb-2">
+                <h3 class="text-sm font-medium text-gray-700">
+                  TOTAL INQUIRIES
+                </h3>
+                <span class="text-sky-600 text-lg"
+                  ><i class="fas fa-envelope-open-text"></i
+                ></span>
+              </div>
+              <p class="text-2xl font-bold text-gray-800">
+                {{ total_inquiries }}
+              </p>
+              <a
+                href="{{ url_for('admin.all_inquiries') }}"
+                class="text-xs text-sky-600 hover:underline mt-2 inline-block"
+              >
+                View all inquiries →
+              </a>
+            </div>
+
+            <!-- Pending Inquiries -->
+            <div
+              class="bg-gray-50 rounded-lg p-4 border-l-4 border-yellow-500 transition-all duration-300 hover:bg-gray-100"
+            >
+              <div class="flex justify-between items-center mb-2">
+                <h3 class="text-sm font-medium text-gray-700">PENDING</h3>
+                <span class="text-yellow-500 text-lg"
+                  ><i class="fas fa-hourglass-half"></i
+                ></span>
+              </div>
+              <p class="text-2xl font-bold text-gray-800">
+                {{ pending_inquiries }}
+              </p>
+              <div class="text-xs text-gray-500 mt-2">
+                <span class="font-medium">
+                  {% if total_inquiries > 0 %} {{ (pending_inquiries /
+                  total_inquiries * 100) | round }}% {% else %} 0% {% endif %}
+                </span>
+                of total
+              </div>
+            </div>
+
+            <!-- Inquiries Resolved -->
+            <div
+              class="bg-gray-50 rounded-lg p-4 border-l-4 border-green-500 transition-all duration-300 hover:bg-gray-100"
+            >
+              <div class="flex justify-between items-center mb-2">
+                <h3 class="text-sm font-medium text-gray-700">RESOLVED</h3>
+                <span class="text-green-600 text-lg"
+                  ><i class="fas fa-check-circle"></i
+                ></span>
+              </div>
+              <p class="text-2xl font-bold text-gray-800">
+                {{ resolved_inquiries }}
+              </p>
+              <div class="text-xs text-gray-500 mt-2">
+                <span class="font-medium">
+                  {% if total_inquiries > 0 %} {{ (resolved_inquiries /
+                  total_inquiries * 100) | round }}% {% else %} 0% {% endif %}
+                </span>
+                of total
+              </div>
+            </div>
+
+            <!-- Top Inquiries -->
+            <div
+              class="bg-gray-50 rounded-lg p-4 border-l-4 border-orange-500 transition-all duration-300 hover:bg-gray-100"
+            >
+              <div class="flex justify-between items-center mb-2">
+                <h3 class="text-sm font-medium text-gray-700">TOP OFFICE</h3>
+                <span class="text-orange-500 text-lg"
+                  ><i class="fas fa-trophy"></i
+                ></span>
+              </div>
+              <p class="text-lg font-bold text-gray-800 truncate">
+                {{ top_inquiry_office }}
+              </p>
+              <div class="text-xs text-orange-600 mt-2">Most active office</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Add these hidden elements somewhere in your HTML -->
+      <div class="hidden">
+        <span id="pending-inquiries-count">{{ pending_inquiries }}</span>
+        <span id="resolved-inquiries-count">{{ resolved_inquiries }}</span>
+        <span id="total-inquiries-count">{{ total_inquiries }}</span>
+        <script type="application/json" id="weekly-labels-data">
+          {{ weekly_labels|tojson }}
+        </script>
+        <script type="application/json" id="weekly-new-inquiries-data">
+          {{ weekly_new_inquiries|tojson }}
+        </script>
+        <script type="application/json" id="weekly-resolved-data">
+          {{ weekly_resolved|tojson }}
+        </script>
+        <script type="application/json" id="monthly-labels-data">
+          {{ monthly_labels|tojson }}
+        </script>
+        <script type="application/json" id="monthly-new-inquiries-data">
+          {{ monthly_new_inquiries|tojson }}
+        </script>
+        <script type="application/json" id="monthly-resolved-data">
+          {{ monthly_resolved|tojson }}
+        </script>
+      </div>
+
+      <!-- Visualization Section -->
+      <section
+        class="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg"
+      >
+        <div
+          class="bg-gray-50 px-4 md:px-6 py-4 border-b flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3"
+        >
+          <h2 class="text-lg font-bold text-gray-800 flex items-center">
+            <i class="fas fa-chart-bar mr-2 text-red-700"></i>
+            Data Visualization
+          </h2>
+          <div class="flex space-x-2">
+            <button
+              class="text-sm px-3 py-1 bg-white border rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-red-700 focus:outline-none active-chart transition-all duration-300"
+              data-chart="weekly"
+            >
+              Weekly
+            </button>
+            <button
+              class="text-sm px-3 py-1 bg-white border rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-red-700 focus:outline-none transition-all duration-300"
+              data-chart="monthly"
+            >
+              Monthly
+            </button>
+          </div>
+        </div>
+        <div class="p-4 md:p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Line Chart -->
+          <div class="h-64 bg-gray-50 rounded-lg p-2">
+            <canvas id="inquiriesTrendChart"></canvas>
+          </div>
+          <!-- Pie Chart -->
+          <div class="h-64 bg-gray-50 rounded-lg p-2">
+            <canvas id="inquiriesPieChart"></canvas>
+          </div>
+        </div>
+      </section>
     </div>
 
-    <!-- Main Dashboard Grid -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
-        <!-- Left Column - System Stats -->
-        <div class="lg:col-span-2 space-y-6 md:space-y-8">
-            <!-- System-wide Stats Section -->
-            <section class="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg">
-                <div class="bg-gray-50 px-4 md:px-6 py-4 border-b">
-                    <h2 class="text-lg font-bold text-gray-800 flex items-center">
-                        <i class="fas fa-chart-pie mr-2 text-red-700"></i>
-                        System Overview
-                    </h2>
-                </div>
-                <div class="p-4 md:p-6">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                        <!-- Total Students -->
-                        <div class="bg-gray-50 rounded-lg p-4 border-l-4 border-purple-500 transition-all duration-300 hover:bg-gray-100">
-                            <div class="flex justify-between items-center mb-2">
-                                <h3 class="text-sm font-medium text-gray-700">STUDENTS</h3>
-                                <span class="text-purple-600 text-lg"><i class="fas fa-user-graduate"></i></span>
-                            </div>
-                            <p class="text-2xl font-bold text-gray-800">{{ total_students }}</p>
-                            <a href="{{ url_for('admin.student_manage') }}" class="text-xs text-purple-600 hover:underline mt-2 inline-block">
-                                View all students →
-                            </a>
-                        </div>
-
-                        <!-- Total Office Admins -->
-                        <div class="bg-gray-50 rounded-lg p-4 border-l-4 border-rose-500 transition-all duration-300 hover:bg-gray-100">
-                            <div class="flex justify-between items-center mb-2">
-                                <h3 class="text-sm font-medium text-gray-700">OFFICE ADMINS</h3>
-                                <span class="text-rose-600 text-lg"><i class="fas fa-user-tie"></i></span>
-                            </div>
-                            <p class="text-2xl font-bold text-gray-800">{{ total_office_admins }}</p>
-                            <a href="{{ url_for('admin.manage_admins') }}" class="text-xs text-rose-600 hover:underline mt-2 inline-block">
-                                Manage admins →
-                            </a>
-                        </div>
-
-                        <!-- Total Inquiries -->
-                        <div class="bg-gray-50 rounded-lg p-4 border-l-4 border-sky-500 transition-all duration-300 hover:bg-gray-100">
-                            <div class="flex justify-between items-center mb-2">
-                                <h3 class="text-sm font-medium text-gray-700">TOTAL INQUIRIES</h3>
-                                <span class="text-sky-600 text-lg"><i class="fas fa-envelope-open-text"></i></span>
-                            </div>
-                            <p class="text-2xl font-bold text-gray-800">{{ total_inquiries }}</p>
-                            <a href="{{ url_for('admin.all_inquiries') }}" class="text-xs text-sky-600 hover:underline mt-2 inline-block">
-                                View all inquiries →
-                            </a>
-                        </div>
-
-                        <!-- Pending Inquiries -->
-                        <div class="bg-gray-50 rounded-lg p-4 border-l-4 border-yellow-500 transition-all duration-300 hover:bg-gray-100">
-                            <div class="flex justify-between items-center mb-2">
-                                <h3 class="text-sm font-medium text-gray-700">PENDING</h3>
-                                <span class="text-yellow-500 text-lg"><i class="fas fa-hourglass-half"></i></span>
-                            </div>
-                            <p class="text-2xl font-bold text-gray-800">{{ pending_inquiries }}</p>
-                            <div class="text-xs text-gray-500 mt-2">
-                                <span class="font-medium">
-                                    {% if total_inquiries > 0 %}
-                                        {{ (pending_inquiries / total_inquiries * 100) | round }}%
-                                    {% else %}
-                                        0%
-                                    {% endif %}
-                                </span> of total
-                            </div>
-                        </div>
-
-                        <!-- Inquiries Resolved -->
-                        <div class="bg-gray-50 rounded-lg p-4 border-l-4 border-green-500 transition-all duration-300 hover:bg-gray-100">
-                            <div class="flex justify-between items-center mb-2">
-                                <h3 class="text-sm font-medium text-gray-700">RESOLVED</h3>
-                                <span class="text-green-600 text-lg"><i class="fas fa-check-circle"></i></span>
-                            </div>
-                            <p class="text-2xl font-bold text-gray-800">{{ resolved_inquiries }}</p>
-                            <div class="text-xs text-gray-500 mt-2">
-                                <span class="font-medium">
-                                    {% if total_inquiries > 0 %}
-                                        {{ (resolved_inquiries / total_inquiries * 100) | round }}%
-                                    {% else %}
-                                        0%
-                                    {% endif %}
-                                </span> of total
-                            </div>
-                        </div>
-
-                        <!-- Top Inquiries -->
-                        <div class="bg-gray-50 rounded-lg p-4 border-l-4 border-orange-500 transition-all duration-300 hover:bg-gray-100">
-                            <div class="flex justify-between items-center mb-2">
-                                <h3 class="text-sm font-medium text-gray-700">TOP OFFICE</h3>
-                                <span class="text-orange-500 text-lg"><i class="fas fa-trophy"></i></span>
-                            </div>
-                            <p class="text-lg font-bold text-gray-800 truncate">{{ top_inquiry_office }}</p>
-                            <div class="text-xs text-orange-600 mt-2">
-                                Most active office
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Add these hidden elements somewhere in your HTML -->
-<div class="hidden">
-    <span id="pending-inquiries-count">{{ pending_inquiries }}</span>
-    <span id="resolved-inquiries-count">{{ resolved_inquiries }}</span>
-    <span id="total-inquiries-count">{{ total_inquiries }}</span>
-    <script type="application/json" id="weekly-labels-data">{{ weekly_labels|tojson }}</script>
-    <script type="application/json" id="weekly-new-inquiries-data">{{ weekly_new_inquiries|tojson }}</script>
-    <script type="application/json" id="weekly-resolved-data">{{ weekly_resolved|tojson }}</script>
-    <script type="application/json" id="monthly-labels-data">{{ monthly_labels|tojson }}</script>
-    <script type="application/json" id="monthly-new-inquiries-data">{{ monthly_new_inquiries|tojson }}</script>
-    <script type="application/json" id="monthly-resolved-data">{{ monthly_resolved|tojson }}</script>
-</div>
-
-            <!-- Visualization Section -->
-            <section class="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg">
-                <div class="bg-gray-50 px-4 md:px-6 py-4 border-b flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                    <h2 class="text-lg font-bold text-gray-800 flex items-center">
-                        <i class="fas fa-chart-bar mr-2 text-red-700"></i>
-                        Data Visualization
-                    </h2>
-                    <div class="flex space-x-2">
-                        <button class="text-sm px-3 py-1 bg-white border rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-red-700 focus:outline-none active-chart transition-all duration-300" 
-                                data-chart="weekly">Weekly</button>
-                        <button class="text-sm px-3 py-1 bg-white border rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-red-700 focus:outline-none transition-all duration-300" 
-                                data-chart="monthly">Monthly</button>
-                    </div>
-                </div>
-                <div class="p-4 md:p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Line Chart -->
-                    <div class="h-64 bg-gray-50 rounded-lg p-2">
-                        <canvas id="inquiriesTrendChart"></canvas>
-                    </div>
-                    <!-- Pie Chart -->
-                    <div class="h-64 bg-gray-50 rounded-lg p-2">
-                        <canvas id="inquiriesPieChart"></canvas>
-                    </div>
-                </div>
-            </section>
+    <!-- Right Column - Office Stats & Activities -->
+    <div class="space-y-6 md:space-y-8">
+      <!-- Offices Section -->
+      <section
+        class="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg"
+      >
+        <div class="bg-gray-50 px-4 md:px-6 py-4 border-b">
+          <h2 class="text-lg font-bold text-gray-800 flex items-center">
+            <i class="fas fa-building mr-2 text-red-700"></i>
+            Office Performance
+          </h2>
         </div>
-
-        <!-- Right Column - Office Stats & Activities -->
-        <div class="space-y-6 md:space-y-8">
-            <!-- Offices Section -->
-            <section class="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg">
-                <div class="bg-gray-50 px-4 md:px-6 py-4 border-b">
-                    <h2 class="text-lg font-bold text-gray-800 flex items-center">
-                        <i class="fas fa-building mr-2 text-red-700"></i>
-                        Office Performance
-                    </h2>
+        <div class="p-4">
+          <div
+            class="space-y-3 max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-red-700 scrollbar-track-gray-100"
+          >
+            {% for office in offices %}
+            <div
+              class="bg-gray-50 rounded-lg p-4 transition-all duration-300 hover:bg-gray-100"
+            >
+              <div class="flex justify-between items-center">
+                <h3 class="font-medium text-gray-800">{{ office.name }}</h3>
+                <span
+                  class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
+                >
+                  {{ office.count }} inquiries
+                </span>
+              </div>
+              <div class="mt-2">
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                  <div
+                    class="bg-red-700 h-2 rounded-full transition-all duration-500"
+                    style="width: {% if total_inquiries > 0 %}{{ (office.count / total_inquiries * 100) | round }}{% else %}0{% endif %}%"
+                  ></div>
                 </div>
-                <div class="p-4">
-                    <div class="space-y-3 max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-red-700 scrollbar-track-gray-100">
-                        {% for office in offices %}
-                        <div class="bg-gray-50 rounded-lg p-4 transition-all duration-300 hover:bg-gray-100">
-                            <div class="flex justify-between items-center">
-                                <h3 class="font-medium text-gray-800">{{ office.name }}</h3>
-                                <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-                                    {{ office.count }} inquiries
-                                </span>
-                            </div>
-                            <div class="mt-2">
-                                <div class="w-full bg-gray-200 rounded-full h-2">
-                                    <div class="bg-red-700 h-2 rounded-full transition-all duration-500" 
-                                         style="width: {% if total_inquiries > 0 %}{{ (office.count / total_inquiries * 100) | round }}{% else %}0{% endif %}%"></div>
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </section>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </section>
 
-           <!-- Recent Activity Section -->
-<section class="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg">
-    <div class="bg-gray-50 px-4 md:px-6 py-4 border-b">
-        <h2 class="text-lg font-bold text-gray-800 flex items-center">
+      <!-- Recent Activity Section -->
+      <section
+        class="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg"
+      >
+        <div class="bg-gray-50 px-4 md:px-6 py-4 border-b">
+          <h2 class="text-lg font-bold text-gray-800 flex items-center">
             <i class="fas fa-history mr-2 text-red-700"></i>
             Recent System Activity
-        </h2>
-    </div>
-    <div class="p-4">
-        <div class="space-y-3 max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-red-700 scrollbar-track-gray-100" id="recent-activities">
+          </h2>
+        </div>
+        <div class="p-4">
+          <div
+            class="space-y-3 max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-red-700 scrollbar-track-gray-100"
+            id="recent-activities"
+          >
             {% for activity in recent_activities %}
-            <div class="border-l-4 
-                {% if 'new' in activity.action.lower() %}border-blue-500 hover:bg-blue-50
-                {% elif 'resolved' in activity.action.lower() %}border-green-500 hover:bg-green-50
-                {% elif 'inquiry' in activity.action.lower() %}border-yellow-500 hover:bg-yellow-50
-                {% elif 'login' in activity.action.lower() %}border-purple-500 hover:bg-purple-50
-                {% elif 'logout' in activity.action.lower() %}border-indigo-500 hover:bg-indigo-50
-                {% else %}border-red-500 hover:bg-red-50{% endif %} 
-                pl-3 py-2 transition-all duration-300 rounded-r-lg">
-                <p class="text-sm font-medium text-gray-800">
-                    {% if activity.actor %}
-                        {% if activity.actor.role == 'super_admin' %}
-                            Super Admin {{ activity.actor.first_name }} {{ activity.actor.last_name }} 
-                        {% elif activity.actor.role == 'office_admin' %}
-                            Office Admin {{ activity.actor.first_name }} {{ activity.actor.last_name }} 
-                        {% elif activity.actor.role == 'student' %}
-                            Student {{ activity.actor.first_name }} {{ activity.actor.last_name }} 
-                        {% endif %}
-                    {% else %}
-                        System 
-                    {% endif %}
-                    {{ activity.action }}
-                </p>
-                <p class="text-xs text-gray-500">{{ activity.timestamp.strftime('%b %d, %I:%M %p') }}</p>
+            <div
+              class="border-l-4 {% if 'new' in activity.action.lower() %}border-blue-500 hover:bg-blue-50 {% elif 'resolved' in activity.action.lower() %}border-green-500 hover:bg-green-50 {% elif 'inquiry' in activity.action.lower() %}border-yellow-500 hover:bg-yellow-50 {% elif 'login' in activity.action.lower() %}border-purple-500 hover:bg-purple-50 {% elif 'logout' in activity.action.lower() %}border-indigo-500 hover:bg-indigo-50 {% else %}border-red-500 hover:bg-red-50{% endif %} pl-3 py-2 transition-all duration-300 rounded-r-lg"
+            >
+              <p class="text-sm font-medium text-gray-800">
+                {% if activity.actor %} {% if activity.actor.role ==
+                'super_admin' %} Super Admin {{ activity.actor.first_name }} {{
+                activity.actor.last_name }} {% elif activity.actor.role ==
+                'office_admin' %} Office Admin {{ activity.actor.first_name }}
+                {{ activity.actor.last_name }} {% elif activity.actor.role ==
+                'student' %} Student {{ activity.actor.first_name }} {{
+                activity.actor.last_name }} {% endif %} {% else %} System {%
+                endif %} {{ activity.action }}
+              </p>
+              <p class="text-xs text-gray-500">
+                {{ activity.timestamp.strftime('%b %d, %I:%M %p') }}
+              </p>
             </div>
             {% else %}
-            <div class="text-center text-gray-500 py-3">No recent activities found</div>
+            <div class="text-center text-gray-500 py-3">
+              No recent activities found
+            </div>
             {% endfor %}
+          </div>
         </div>
+      </section>
+      <!-- Counseling Sessions & Audit Logs -->
     </div>
-</section>
-                <!-- Counseling Sessions & Audit Logs -->
+  </div>
 
+  <!-- Counseling Sessions & Audit Logs -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
+    <!-- Upcoming Counseling Sessions -->
+    <section
+      class="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg"
+    >
+      <div
+        class="bg-gray-50 px-4 md:px-6 py-4 border-b flex justify-between items-center"
+      >
+        <h2 class="text-lg font-bold text-gray-800 flex items-center">
+          <i class="fas fa-calendar-alt mr-2 text-red-700"></i>
+          Upcoming Counseling Sessions
+        </h2>
+        <a
+          href="{{ url_for('admin.counseling_sessions') }}"
+          class="text-sm text-red-700 hover:text-red-800 hover:underline transition-all duration-300"
+          >View All</a
+        >
+      </div>
+      <div class="divide-y" id="upcoming-sessions">
+        {% for session in upcoming_sessions %}
+        <div
+          class="p-4 flex items-center justify-between transition-all duration-300 hover:bg-gray-50"
+        >
+          <div>
+            <p class="font-medium">
+              {{ session.student.user.get_full_name() }} with {{
+              session.office.name }}
+            </p>
+            <p class="text-sm text-gray-500">
+              {{ session.scheduled_at.strftime('%b %d, %I:%M %p') }}
+            </p>
+          </div>
+          <span
+            class="px-2 py-1 {% if session.status == 'scheduled' %}bg-blue-100 text-blue-800 {% elif session.status == 'confirmed' %}bg-green-100 text-green-800 {% elif session.status == 'waiting' %}bg-yellow-100 text-yellow-800 {% else %}bg-gray-100 text-gray-800{% endif %} text-xs rounded-full"
+          >
+            {{ session.status|capitalize }}
+          </span>
         </div>
-    </div>
+        {% else %}
+        <div class="p-4 text-center text-gray-500">
+          No upcoming sessions scheduled
+        </div>
+        {% endfor %}
+      </div>
+    </section>
 
-    <!-- Counseling Sessions & Audit Logs -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
-        <!-- Upcoming Counseling Sessions -->
-        <section class="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg">
-            <div class="bg-gray-50 px-4 md:px-6 py-4 border-b flex justify-between items-center">
-                <h2 class="text-lg font-bold text-gray-800 flex items-center">
-                    <i class="fas fa-calendar-alt mr-2 text-red-700"></i>
-                    Upcoming Counseling Sessions
-                </h2>
-                <a href="{{ url_for('admin.counseling_sessions') }}" class="text-sm text-red-700 hover:text-red-800 hover:underline transition-all duration-300">View All</a>
-            </div>
-            <div class="divide-y" id="upcoming-sessions">
-                {% for session in upcoming_sessions %}
-                <div class="p-4 flex items-center justify-between transition-all duration-300 hover:bg-gray-50">
-                    <div>
-                        <p class="font-medium">{{ session.student.user.get_full_name() }} with {{ session.office.name }}</p>
-                        <p class="text-sm text-gray-500">{{ session.scheduled_at.strftime('%b %d, %I:%M %p') }}</p>
-                    </div>
-                    <span class="px-2 py-1 
-                        {% if session.status == 'scheduled' %}bg-blue-100 text-blue-800
-                        {% elif session.status == 'confirmed' %}bg-green-100 text-green-800
-                        {% elif session.status == 'waiting' %}bg-yellow-100 text-yellow-800
-                        {% else %}bg-gray-100 text-gray-800{% endif %} 
-                        text-xs rounded-full">
-                        {{ session.status|capitalize }}
-                    </span>
-                </div>
-                {% else %}
-                <div class="p-4 text-center text-gray-500">No upcoming sessions scheduled</div>
-                {% endfor %}
-            </div>
-        </section>
-
-        <!-- Recent System Logs -->
-        <section class="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg">
-            <div class="bg-gray-50 px-4 md:px-6 py-4 border-b flex justify-between items-center">
-                <h2 class="text-lg font-bold text-gray-800 flex items-center">
-                    <i class="fas fa-clipboard-list mr-2 text-red-700"></i>
-                    System Logs
-                </h2>
-                <a href="{{ url_for('admin.audit_logs') }}" class="text-sm text-red-700 hover:text-red-800 hover:underline transition-all duration-300">View All Logs</a>
-            </div>
-            <div class="p-4">
-                <div class="space-y-3 max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-red-700 scrollbar-track-gray-100" id="system-logs">
-                    {% for log in system_logs %}
-                    <div class="text-sm border-l-2 border-gray-300 pl-3 py-1 transition-all duration-300 hover:bg-gray-50 rounded-r-lg">
-                        <p class="font-medium flex items-center">
-                            <span class="h-2 w-2 rounded-full 
-                                {% if log.is_success %}bg-green-500
-                                {% elif 'login' in log.action.lower() %}bg-blue-500
-                                {% elif 'fail' in log.action.lower() %}bg-red-500
-                                {% else %}bg-yellow-500{% endif %} mr-2"></span>
-                            {{ log.action }}
-                            {% if log.actor %}({{ log.actor.role }}){% endif %}
-                        </p>
-                        <p class="text-xs text-gray-500">{{ log.timestamp.strftime('%b %d, %I:%M %p') }}</p>
-                    </div>
-                    {% else %}
-                    <div class="text-center text-gray-500 py-3">No system logs found</div>
-                    {% endfor %}
-                </div>
-            </div>
-        </section>
-    </div>
+    <!-- Recent System Logs -->
+    <section
+      class="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg"
+    >
+      <div
+        class="bg-gray-50 px-4 md:px-6 py-4 border-b flex justify-between items-center"
+      >
+        <h2 class="text-lg font-bold text-gray-800 flex items-center">
+          <i class="fas fa-clipboard-list mr-2 text-red-700"></i>
+          System Logs
+        </h2>
+        <a
+          href="{{ url_for('admin.audit_logs') }}"
+          class="text-sm text-red-700 hover:text-red-800 hover:underline transition-all duration-300"
+          >View All Logs</a
+        >
+      </div>
+      <div class="p-4">
+        <div
+          class="space-y-3 max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-red-700 scrollbar-track-gray-100"
+          id="system-logs"
+        >
+          {% for log in system_logs %}
+          <div
+            class="text-sm border-l-2 border-gray-300 pl-3 py-1 transition-all duration-300 hover:bg-gray-50 rounded-r-lg"
+          >
+            <p class="font-medium flex items-center">
+              <span
+                class="h-2 w-2 rounded-full {% if log.is_success %}bg-green-500 {% elif 'login' in log.action.lower() %}bg-blue-500 {% elif 'fail' in log.action.lower() %}bg-red-500 {% else %}bg-yellow-500{% endif %} mr-2"
+              ></span>
+              {{ log.action }} {% if log.actor %}({{ log.actor.role }}){% endif
+              %}
+            </p>
+            <p class="text-xs text-gray-500">
+              {{ log.timestamp.strftime('%b %d, %I:%M %p') }}
+            </p>
+          </div>
+          {% else %}
+          <div class="text-center text-gray-500 py-3">No system logs found</div>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+  </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+{% endblock %} {% block extra_js %}
+<script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="/static/js/socket.js"></script>
+<script src="/static/js/admin/websockets/admin_sockets.js"></script>
 <script src="/static/js/admin/admindashboard.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {% endblock %}

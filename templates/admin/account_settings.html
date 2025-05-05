@@ -1,0 +1,306 @@
+{% extends "admin/adminbase.html" %}
+
+{% block title %}Account Settings - KapiyuGuide{% endblock %}
+
+{% block content %}
+<div class="bg-white shadow-md rounded-lg p-6  mb-6">
+    <h1 class="text-2xl font-bold text-blue-800 mb-6 border-b pb-3">
+        <i class="fas fa-user-cog mr-2"></i> Account Settings
+    </h1>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Profile Picture Section -->
+        <div class="lg:col-span-1">
+            <div class="bg-gray-50 rounded-lg p-6 text-center border sticky top-6">
+                <div class="w-40 h-40 rounded-full overflow-hidden bg-blue-800 mx-auto mb-4">
+                    {% if current_user.profile_pic %}
+                        <img src="{{ url_for('static', filename='uploads/profile_pics/' + current_user.profile_pic) }}" 
+                            alt="Profile Picture" class="w-full h-full object-cover">
+                    {% else %}
+                        <div class="w-full h-full flex items-center justify-center text-white text-5xl font-bold">
+                            {{ current_user.first_name[0] }}{{ current_user.last_name[0] }}
+                        </div>
+                    {% endif %}
+                </div>
+                <h3 class="font-semibold text-xl text-blue-800">{{ current_user.first_name }} {{ current_user.last_name }}</h3>
+                <p class="text-gray-500 mb-6">{{ current_user.role|replace('_', ' ')|title }}</p>
+                
+                <form id="profile-pic-form" action="{{ url_for('admin.update_profile_picture') }}" method="post" enctype="multipart/form-data">
+                    {{ profile_pic_form.csrf_token }}
+                    <div class="mb-4">
+                        <label for="profile_pic" class="cursor-pointer bg-blue-100 hover:bg-blue-200 text-blue-800 py-2 px-4 rounded inline-block">
+                            <i class="fas fa-camera mr-2"></i> Change Photo
+                            <input type="file" id="profile_pic" name="profile_pic" class="hidden" onchange="document.getElementById('profile-pic-form').submit()">
+                        </label>
+                    </div>
+                </form>
+                
+                {% if current_user.profile_pic %}
+                <form action="{{ url_for('admin.remove_profile_picture') }}" method="post">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="text-red-600 hover:text-red-800">
+                        <i class="fas fa-trash-alt mr-1"></i> Remove Photo
+                    </button>
+                </form>
+                {% endif %}
+            
+                <!-- Last Activity Section -->
+                <div class="mt-6 border-t pt-6">
+                    <h3 class="font-semibold text-lg text-blue-800 mb-3">Account Info</h3>
+                    <div class="mb-3">
+                        <p class="text-sm text-gray-500">Last Activity</p>
+                        <p class="font-medium">{{ current_user.last_activity.strftime('%B %d, %Y %I:%M %p') if current_user.last_activity else 'Not available' }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <p class="text-sm text-gray-500">Account Created</p>
+                        <p class="font-medium">{{ current_user.created_at.strftime('%B %d, %Y') }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Status</p>
+                        <span class="px-3 py-1 rounded-full text-sm font-medium {{ 'bg-green-100 text-green-800' if current_user.is_active else 'bg-red-100 text-red-800' }}">
+                            {{ 'Active' if current_user.is_active else 'Inactive' }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Account Settings Section -->
+        <div class="lg:col-span-2">
+            <!-- Personal Information Form -->
+            <div class="bg-gray-50 rounded-lg p-6 mb-6 border">
+                <h3 class="font-semibold text-lg text-blue-800 mb-4 pb-2 border-b">Personal Information</h3>
+                
+                <form action="{{ url_for('admin.update_personal_info') }}" method="post">
+                    {{ personal_form.csrf_token }}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                        <div>
+                            <label for="first_name" class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                            <input type="text" id="first_name" name="first_name" 
+                                value="{{ current_user.first_name }}" 
+                                class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label for="last_name" class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                            <input type="text" id="last_name" name="last_name" 
+                                value="{{ current_user.last_name }}" 
+                                class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div>
+                            <label for="middle_name" class="block text-sm font-medium text-gray-700 mb-1">Middle Name (Optional)</label>
+                            <input type="text" id="middle_name" name="middle_name" 
+                                value="{{ current_user.middle_name or '' }}" 
+                                class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                            <input type="email" id="email" name="email" 
+                                value="{{ current_user.email }}" 
+                                class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-end">
+                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded-md">
+                            <i class="fas fa-save mr-2"></i> Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Change Password Form -->
+            <div class="bg-gray-50 rounded-lg p-6 mb-6 border">
+                <h3 class="font-semibold text-lg text-blue-800 mb-4 pb-2 border-b">Change Password</h3>
+                
+                <form action="{{ url_for('admin.change_password') }}" method="post">
+                    {{ password_form.csrf_token }}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="mb-4">
+                            <label for="current_password" class="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
+                            <input type="password" id="current_password" name="current_password" 
+                                class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div>
+                            <label for="new_password" class="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+                            <input type="password" id="new_password" name="new_password" 
+                                class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <p class="text-xs text-gray-500 mt-1">Password must be at least 8 characters with letters, numbers and special characters</p>
+                        </div>
+                        <div>
+                            <label for="confirm_password" class="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
+                            <input type="password" id="confirm_password" name="confirm_password" 
+                                class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-end">
+                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded-md">
+                            <i class="fas fa-key mr-2"></i> Update Password
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Security Settings -->
+            <div class="bg-gray-50 rounded-lg p-6 border">
+                <h3 class="font-semibold text-lg text-blue-800 mb-4 pb-2 border-b">Security Settings</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="mb-6">
+                        <div class="flex items-center justify-between mb-2">
+                            <div>
+                                <h4 class="font-medium">Two-Factor Authentication</h4>
+                                <p class="text-sm text-gray-500">Add an extra layer of security</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="tfa_toggle" class="sr-only peer" {{ 'checked' if tfa_enabled else '' }}>
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                            </label>
+                        </div>
+                        <div id="tfa_settings" class="mt-3 {{ '' if tfa_enabled else 'hidden' }}">
+                            <a href="{{ url_for('admin.setup_two_factor') }}" class="text-blue-600 hover:text-blue-800">
+                                <i class="fas fa-cog mr-1"></i> Configure Two-Factor Authentication
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <div class="flex items-center justify-between mb-2">
+                            <div>
+                                <h4 class="font-medium">Login History</h4>
+                                <p class="text-sm text-gray-500">View your recent login activity</p>
+                            </div>
+                            <a href="{{ url_for('admin.login_history') }}" class="text-blue-600 hover:text-blue-800 px-3 py-1 border border-blue-600 rounded-md">
+                                <i class="fas fa-history mr-1"></i> View History
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="font-medium">Account Actions</h4>
+                            <p class="text-sm text-gray-500">Manage advanced account options</p>
+                        </div>
+                        <button id="deactivate-account-btn" class="text-red-600 hover:text-red-800 px-3 py-1 border border-red-600 rounded-md">
+                            <i class="fas fa-user-slash mr-1"></i> Deactivate Account
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Deactivate Account Modal -->
+<div id="deactivate-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+    <div class="bg-white rounded-lg p-6 max-w-md w-full">
+        <h3 class="text-xl font-bold text-red-600 mb-4">Deactivate Account?</h3>
+        <p class="mb-6">Are you sure you want to deactivate your account? This action will require another super admin to reactivate your account.</p>
+        <form action="{{ url_for('admin.deactivate_account') }}" method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="flex justify-end space-x-3">
+                <button type="button" id="cancel-deactivate" class="bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 px-4 rounded-md">
+                    Cancel
+                </button>
+                <button type="submit" class="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-md">
+                    Deactivate
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get CSRF token from meta tag
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        
+        // Two-Factor Authentication toggle
+        const tfaToggle = document.getElementById('tfa_toggle');
+        const tfaSettings = document.getElementById('tfa_settings');
+        
+        if (tfaToggle) {
+            tfaToggle.addEventListener('change', function() {
+                if (this.checked) {
+                    tfaSettings.classList.remove('hidden');
+                    // Redirect to setup page or show settings
+                    window.location.href = "{{ url_for('admin.setup_two_factor') }}";
+                } else {
+                    tfaSettings.classList.add('hidden');
+                    // Disable 2FA via AJAX
+                    fetch("{{ url_for('admin.disable_two_factor') }}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': csrfToken
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Show success notification
+                            showNotification('Two-factor authentication disabled successfully', 'success');
+                        } else {
+                            // Show error and revert toggle
+                            this.checked = true;
+                            tfaSettings.classList.remove('hidden');
+                            showNotification('Failed to disable two-factor authentication', 'error');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        this.checked = true;
+                        tfaSettings.classList.remove('hidden');
+                        showNotification('An error occurred. Please try again.', 'error');
+                    });
+                }
+            });
+        }
+        
+        // Deactivate Account Modal
+        const deactivateBtn = document.getElementById('deactivate-account-btn');
+        const deactivateModal = document.getElementById('deactivate-modal');
+        const cancelDeactivate = document.getElementById('cancel-deactivate');
+        
+        if (deactivateBtn && deactivateModal && cancelDeactivate) {
+            deactivateBtn.addEventListener('click', function() {
+                deactivateModal.classList.remove('hidden');
+            });
+            
+            cancelDeactivate.addEventListener('click', function() {
+                deactivateModal.classList.add('hidden');
+            });
+            
+            // Close modal when clicking outside
+            deactivateModal.addEventListener('click', function(e) {
+                if (e.target === deactivateModal) {
+                    deactivateModal.classList.add('hidden');
+                }
+            });
+        }
+        
+        // Helper function for showing notifications
+        function showNotification(message, type) {
+            // You can implement or use an existing notification system
+            // This is a simple fallback
+            if (type === 'error') {
+                console.error(message);
+                alert(message);
+            } else {
+                console.log(message);
+                // You could use a toast notification library here
+            }
+        }
+    });
+</script>
+{% endblock %}

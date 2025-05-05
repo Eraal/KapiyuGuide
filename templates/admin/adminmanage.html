@@ -3,110 +3,6 @@
 {% block title %}KapiyuGuide Admin Dashboard{% endblock %}
 
 {% block content %}
-<style>
-    /* Enhanced animations */
-    @keyframes slideInRight {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-
-    @keyframes slideOutRight {
-        from {
-            transform: translateX(0);
-            opacity: 1;
-        }
-
-        to {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-    }
-
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-        }
-
-        to {
-            opacity: 1;
-        }
-    }
-
-    /* Enhanced hover effects */
-    .stat-card {
-        transition: all 0.3s ease;
-    }
-
-    .stat-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    }
-
-    .office-card {
-        transition: all 0.25s ease;
-    }
-
-    .office-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    }
-
-    .action-btn {
-        transition: all 0.2s ease;
-    }
-
-    .action-btn:hover {
-        transform: scale(1.05);
-    }
-
-    /* Table hover effects */
-    .table-row {
-        transition: background-color 0.2s ease;
-    }
-
-    /* Modal animations */
-    .modal-content {
-        animation: fadeIn 0.3s ease-out;
-    }
-
-    /* Notification styling */
-    #passwordResetMessage {
-        animation: slideInRight 0.3s ease-out forwards;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    }
-
-    #passwordResetMessage.closing {
-        animation: slideOutRight 0.3s ease-in forwards;
-    }
-
-    /* Steps indicators */
-    .step-active {
-        color: #1e40af;
-    }
-
-    .step-active span:first-child {
-        background-color: #1e40af;
-    }
-
-    .step-active::after {
-        border-color: #1e40af;
-    }
-
-    /* Form focus effects */
-    input:focus,
-    select:focus {
-        outline: none;
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
-        border-color: #3b82f6;
-    }
-</style>
 
 <div class="space-y-6">
     <!-- Dashboard Header -->
@@ -143,7 +39,6 @@
                 </div>
             </div>
 
-            <!-- Unassigned Office -->
             <div class="bg-white rounded-xl shadow-md p-5 flex justify-between items-center stat-card text-gray-800">
                 <div>
                     <h4 class="text-sm font-semibold text-gray-500">UNASSIGNED OFFICE</h4>
@@ -154,7 +49,6 @@
                 </div>
             </div>
 
-            <!-- Unassigned Admin -->
             <div class="bg-white rounded-xl shadow-md p-5 flex justify-between items-center stat-card text-gray-800">
                 <div>
                     <h4 class="text-sm font-semibold text-gray-500">UNASSIGNED ADMIN</h4>
@@ -212,7 +106,6 @@
             </button>
         </div>
 
-        <!-- Search and Filter Controls -->
         <div class="p-5 flex flex-col md:flex-row justify-between items-center gap-4 bg-white">
             <div class="w-full md:w-1/2">
                 <div class="relative">
@@ -245,7 +138,6 @@
             </div>
         </div>
 
-        <!-- Admin Table with enhanced design -->
         <div class="overflow-x-auto">
             <table class="min-w-full bg-white">
                 <thead>
@@ -323,6 +215,7 @@
                         <!-- Action Buttons -->
                         <td class="py-3.5 px-4 text-center">
                             <div class="flex justify-center space-x-2">
+                                <meta name="csrf-token" content="{{ csrf_token }}">
                                 <button
                                     class="bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs action-btn focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
                                     onclick="openEditAdminModal({{ user.id }})">
@@ -665,11 +558,13 @@
                                 <i class="fas fa-lock text-blue-600 mr-2"></i>
                                 Password Management
                             </label>
+                            <meta name="csrf-token" content="{{ csrf_token }}">
+                            
                             <button type="button" id="resetPasswordBtn"
                                 class="text-sm text-white bg-blue-600 hover:bg-blue-700 px-3 py-1.5 rounded-lg transition-all flex items-center action-btn focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
                                 onclick="resetAdminPassword()">
                                 <i class="fas fa-key mr-2"></i> Reset Password
-                            </button>
+                            </button>           
                         </div>
                         <p class="text-xs text-gray-500 mt-2">Resetting will change the password to default
                             (kapiyuadmin).</p>
@@ -697,6 +592,7 @@
                             onclick="closeEditAdminModal()">
                             <i class="fas fa-times mr-1"></i> Cancel
                         </button>
+                        <meta name="csrf-token" content="{{ csrf_token }}">
                         <button type="submit"
                             class="px-5 py-2.5 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all action-btn focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50">
                             <i class="fas fa-save mr-1"></i> Update Admin
@@ -730,15 +626,10 @@
                         <i class="fas fa-users text-blue-600 mr-2"></i>
                         Office Administrators
                     </h4>
-                    <!-- <button
-                        class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1.5 rounded-lg action-btn focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
-                        <i class="fas fa-plus mr-1"></i> ASSIGN ADMIN
-                    </button> -->
                 </div>
 
                 <div class="bg-gray-50 rounded-lg border border-gray-200">
                     <div id="officeAdminsContainer" class="divide-y divide-gray-200">
-                        <!-- Office admins will be loaded here -->
                         <div class="flex justify-between items-center p-4 hover:bg-gray-100 transition-colors">
                             <div class="flex items-center">
                                 <div
@@ -763,7 +654,6 @@
                         </div>
                     </div>
 
-                    <!-- Empty state for when there are no admins -->
                     <div id="noAdminsMessage" class="p-8 text-center text-gray-500 hidden">
                         <div class="flex justify-center mb-4">
                             <div class="bg-gray-100 p-4 rounded-full">
@@ -782,7 +672,6 @@
     </div>
 </div>
 
-<!-- Delete Confirmation Modal - Improved Design -->
 <div id="deleteConfirmModal"
     class="fixed inset-0 bg-gray-900 bg-opacity-50 backdrop-filter backdrop-blur-sm hidden overflow-y-auto h-full w-full z-50 flex items-center justify-center">
     <div class="relative mx-auto p-6 w-full max-w-md shadow-xl rounded-xl bg-white modal-content">
@@ -813,7 +702,6 @@
     </div>
 </div>
 
-<!-- Password Reset Notification Banner -->
 <div id="passwordResetMessage"
     class="fixed bottom-4 right-4 bg-white shadow-lg rounded-lg p-4 border-l-4 border-green-500 flex items-center justify-between w-80 hidden">
     <div class="flex items-center">
@@ -830,10 +718,11 @@
     </button>
 </div>
 
-<!-- Add JavaScript for notification handling -->
-
 {% endblock %}
 {% block extra_js %}
+
+<script src="/static/js/socket.js"></script>
+<script src="/static/js/admin/websockets/admin_sockets.js"></script>
 <script src="{{ url_for('static', filename='js/admin/adminmanage.js') }}"></script>
-<script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+
 {% endblock %}

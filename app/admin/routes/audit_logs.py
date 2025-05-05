@@ -69,9 +69,14 @@ def handle_student_logs(search_query):
         User.id, Student.id
     )
     
+    # Pagination
+    page = request.args.get('page', 1, type=int)
+    per_page = 10
+    paginated_logs = student_logs_query.paginate(page=page, per_page=per_page, error_out=False)
+    
     # Format student logs for display
     formatted_logs = []
-    for log, student, user in student_logs_query.all():
+    for log, student, user in paginated_logs.items:
         formatted_logs.append({
             'id': log.id,
             'student_name': f"{user.first_name} {user.last_name}",
@@ -86,6 +91,7 @@ def handle_student_logs(search_query):
     return render_template('admin/audit_logs.html', 
                           students=students_query.all(),
                           student_logs=formatted_logs,
+                          pagination=paginated_logs,
                           filter_type='student',
                           search_query=search_query,
                           view_type='student')
@@ -127,9 +133,14 @@ def handle_office_logs(search_query):
         Office.id
     )
     
+    # Pagination
+    page = request.args.get('page', 1, type=int)
+    per_page = 10
+    paginated_logs = office_logs_query.paginate(page=page, per_page=per_page, error_out=False)
+    
     # Format office logs for display
     formatted_logs = []
-    for log, office_admin, user, office in office_logs_query.all():
+    for log, office_admin, user, office in paginated_logs.items:
         formatted_logs.append({
             'id': log.id,
             'admin_name': f"{user.first_name} {user.last_name}",
@@ -145,10 +156,10 @@ def handle_office_logs(search_query):
     return render_template('admin/audit_logs.html', 
                           offices=offices_query.all(),
                           office_logs=formatted_logs,
+                          pagination=paginated_logs,
                           filter_type='office',
                           search_query=search_query,
                           view_type='office')
-
 
 def handle_superadmin_logs(search_query):
     """Handle super admin activity logs filtering and display"""
@@ -183,9 +194,14 @@ def handle_superadmin_logs(search_query):
         User.id
     )
     
+    # Pagination
+    page = request.args.get('page', 1, type=int)
+    per_page = 10
+    paginated_logs = superadmin_logs_query.paginate(page=page, per_page=per_page, error_out=False)
+    
     # Format super admin logs for display
     formatted_logs = []
-    for log_data in superadmin_logs_query.all():
+    for log_data in paginated_logs.items:
         log = log_data[0]  # Extract the actual log object
         formatted_logs.append({
             'id': log.id,
@@ -202,6 +218,7 @@ def handle_superadmin_logs(search_query):
     return render_template('admin/audit_logs.html', 
                           super_admins=super_admins_query.all(),
                           superadmin_logs=formatted_logs,
+                          pagination=paginated_logs,
                           filter_type='superadmin',
                           search_query=search_query,
                           view_type='superadmin')

@@ -184,7 +184,6 @@
 <div class="mt-6">
     <h2 class="text-lg font-semibold text-gray-700 mb-3">Student Activity Logs</h2>
     
-    <!-- Export options -->
     <div class="mb-4 flex space-x-2">
         <a href="{{ url_for('admin.export_logs', type='student', format='csv') }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700">
             Export CSV
@@ -196,35 +195,6 @@
             Export PDF
         </a>
     </div>
-    
-    <!-- Filter options -->
-    <!-- <div class="mb-4 p-4 bg-gray-50 rounded-lg">
-        <form method="get" action="{{ url_for('admin.audit_logs') }}" class="flex flex-wrap items-center gap-4">
-            <input type="hidden" name="filter_type" value="student">
-            
-            <div class="flex items-center">
-                <label for="search" class="block text-sm font-medium text-gray-700 mr-2">Search:</label>
-                <input type="text" name="search" id="search" value="{{ search_query }}" 
-                    class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
-            </div>
-            
-            <div class="flex items-center">
-                <label for="date_from" class="block text-sm font-medium text-gray-700 mr-2">From:</label>
-                <input type="date" name="date_from" id="date_from" 
-                    class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
-            </div>
-            
-            <div class="flex items-center">
-                <label for="date_to" class="block text-sm font-medium text-gray-700 mr-2">To:</label>
-                <input type="date" name="date_to" id="date_to" 
-                    class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
-            </div>
-            
-            <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700">
-                Filter
-            </button>
-        </form>
-    </div> -->
     
     <div class="overflow-x-auto border rounded-lg">
         <table class="min-w-full divide-y divide-gray-200">
@@ -267,6 +237,84 @@
             </tbody>
         </table>
     </div>
+</div>
+
+<!-- Student logs pagination -->
+<div class="mt-4">
+    <nav class="flex items-center justify-between border-t border-gray-200 px-4 sm:px-0">
+        <div class="flex w-0 flex-1">
+            {% if pagination.has_prev %}
+            <a href="{{ url_for('admin.audit_logs', page=pagination.prev_num, filter_type='student', search=search_query) }}"
+                class="inline-flex items-center border-t-2 border-transparent pr-1 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700">
+                <svg class="mr-3 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                    fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd"
+                        d="M7.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l2.293 2.293a1 1 0 010 1.414z"
+                        clip-rule="evenodd" />
+                </svg>
+                Previous
+            </a>
+            {% else %}
+            <span
+                class="inline-flex items-center border-t-2 border-transparent pr-1 pt-4 text-sm font-medium text-gray-300">
+                <svg class="mr-3 h-5 w-5 text-gray-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                    fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd"
+                        d="M7.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l2.293 2.293a1 1 0 010 1.414z"
+                        clip-rule="evenodd" />
+                </svg>
+                Previous
+            </span>
+            {% endif %}
+        </div>
+        <div class="hidden md:flex">
+            {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+            {% if page_num %}
+            {% if page_num == pagination.page %}
+            <span
+                class="inline-flex items-center border-t-2 border-indigo-500 px-4 pt-4 text-sm font-medium text-indigo-600">
+                {{ page_num }}
+            </span>
+            {% else %}
+            <a href="{{ url_for('admin.audit_logs', page=page_num, filter_type='student', search=search_query) }}"
+                class="inline-flex items-center border-t-2 border-transparent px-4 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700">
+                {{ page_num }}
+            </a>
+            {% endif %}
+            {% else %}
+            <span
+                class="inline-flex items-center border-t-2 border-transparent px-4 pt-4 text-sm font-medium text-gray-500">
+                ...
+            </span>
+            {% endif %}
+            {% endfor %}
+        </div>
+        <div class="flex w-0 flex-1 justify-end">
+            {% if pagination.has_next %}
+            <a href="{{ url_for('admin.audit_logs', page=pagination.next_num, filter_type='student', search=search_query) }}"
+                class="inline-flex items-center border-t-2 border-transparent pl-1 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700">
+                Next
+                <svg class="ml-3 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                    fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd"
+                        d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z"
+                        clip-rule="evenodd" />
+                </svg>
+            </a>
+            {% else %}
+            <span
+                class="inline-flex items-center border-t-2 border-transparent pl-1 pt-4 text-sm font-medium text-gray-300">
+                Next
+                <svg class="ml-3 h-5 w-5 text-gray-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                    fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd"
+                        d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z"
+                        clip-rule="evenodd" />
+                </svg>
+            </span>
+            {% endif %}
+        </div>
+    </nav>
 </div>
 
 
@@ -321,12 +369,7 @@
                             </span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ counseling_sessions }}</td>
-                        <!-- <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <a href="{{ url_for('admin.get_offices', office_id=office.id) }}"
-                                class="text-blue-600 hover:text-blue-900">
-                                <i class="fas fa-eye"></i> View Details
-                            </a>
-                        </td> -->
+                       
                     </tr>
                     {% else %}
                     <tr>
@@ -488,6 +531,84 @@
             </table>
         </div>
     </div>
+
+    <!-- Office logs pagination -->
+<div class="mt-4">
+    <nav class="flex items-center justify-between border-t border-gray-200 px-4 sm:px-0">
+        <div class="flex w-0 flex-1">
+            {% if pagination.has_prev %}
+            <a href="{{ url_for('admin.audit_logs', page=pagination.prev_num, filter_type='office', search=search_query) }}"
+                class="inline-flex items-center border-t-2 border-transparent pr-1 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700">
+                <svg class="mr-3 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                    fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd"
+                        d="M7.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l2.293 2.293a1 1 0 010 1.414z"
+                        clip-rule="evenodd" />
+                </svg>
+                Previous
+            </a>
+            {% else %}
+            <span
+                class="inline-flex items-center border-t-2 border-transparent pr-1 pt-4 text-sm font-medium text-gray-300">
+                <svg class="mr-3 h-5 w-5 text-gray-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                    fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd"
+                        d="M7.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l2.293 2.293a1 1 0 010 1.414z"
+                        clip-rule="evenodd" />
+                </svg>
+                Previous
+            </span>
+            {% endif %}
+        </div>
+        <div class="hidden md:flex">
+            {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+            {% if page_num %}
+            {% if page_num == pagination.page %}
+            <span
+                class="inline-flex items-center border-t-2 border-indigo-500 px-4 pt-4 text-sm font-medium text-indigo-600">
+                {{ page_num }}
+            </span>
+            {% else %}
+            <a href="{{ url_for('admin.audit_logs', page=page_num, filter_type='office', search=search_query) }}"
+                class="inline-flex items-center border-t-2 border-transparent px-4 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700">
+                {{ page_num }}
+            </a>
+            {% endif %}
+            {% else %}
+            <span
+                class="inline-flex items-center border-t-2 border-transparent px-4 pt-4 text-sm font-medium text-gray-500">
+                ...
+            </span>
+            {% endif %}
+            {% endfor %}
+        </div>
+        <div class="flex w-0 flex-1 justify-end">
+            {% if pagination.has_next %}
+            <a href="{{ url_for('admin.audit_logs', page=pagination.next_num, filter_type='office', search=search_query) }}"
+                class="inline-flex items-center border-t-2 border-transparent pl-1 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700">
+                Next
+                <svg class="ml-3 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                    fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd"
+                        d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z"
+                        clip-rule="evenodd" />
+                </svg>
+            </a>
+            {% else %}
+            <span
+                class="inline-flex items-center border-t-2 border-transparent pl-1 pt-4 text-sm font-medium text-gray-300">
+                Next
+                <svg class="ml-3 h-5 w-5 text-gray-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                    fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd"
+                        d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z"
+                        clip-rule="evenodd" />
+                </svg>
+            </span>
+            {% endif %}
+        </div>
+    </nav>
+</div>
     
     <!-- Superadmin activity logs -->
     <div class="mt-6">
@@ -594,6 +715,86 @@
         </div>
     </div>
 
+    <!-- Superadmin logs pagination -->
+<div class="mt-4">
+    <nav class="flex items-center justify-between border-t border-gray-200 px-4 sm:px-0">
+        <div class="flex w-0 flex-1">
+            {% if pagination.has_prev %}
+            <a href="{{ url_for('admin.audit_logs', page=pagination.prev_num, filter_type='superadmin', search=search_query) }}"
+                class="inline-flex items-center border-t-2 border-transparent pr-1 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700">
+                <svg class="mr-3 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                    fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd"
+                        d="M7.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l2.293 2.293a1 1 0 010 1.414z"
+                        clip-rule="evenodd" />
+                </svg>
+                Previous
+            </a>
+            {% else %}
+            <span
+                class="inline-flex items-center border-t-2 border-transparent pr-1 pt-4 text-sm font-medium text-gray-300">
+                <svg class="mr-3 h-5 w-5 text-gray-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                    fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd"
+                        d="M7.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l2.293 2.293a1 1 0 010 1.414z"
+                        clip-rule="evenodd" />
+                </svg>
+                Previous
+            </span>
+            {% endif %}
+        </div>
+        <div class="hidden md:flex">
+            {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+            {% if page_num %}
+            {% if page_num == pagination.page %}
+            <span
+                class="inline-flex items-center border-t-2 border-indigo-500 px-4 pt-4 text-sm font-medium text-indigo-600">
+                {{ page_num }}
+            </span>
+            {% else %}
+            <a href="{{ url_for('admin.audit_logs', page=page_num, filter_type='superadmin', search=search_query) }}"
+                class="inline-flex items-center border-t-2 border-transparent px-4 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700">
+                {{ page_num }}
+            </a>
+            {% endif %}
+            {% else %}
+            <span
+                class="inline-flex items-center border-t-2 border-transparent px-4 pt-4 text-sm font-medium text-gray-500">
+                ...
+            </span>
+            {% endif %}
+            {% endfor %}
+        </div>
+        <div class="flex w-0 flex-1 justify-end">
+            {% if pagination.has_next %}
+            <a href="{{ url_for('admin.audit_logs', page=pagination.next_num, filter_type='superadmin', search=search_query) }}"
+                class="inline-flex items-center border-t-2 border-transparent pl-1 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700">
+                Next
+                <svg class="ml-3 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                    fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd"
+                        d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z"
+                        clip-rule="evenodd" />
+                </svg>
+            </a>
+            {% else %}
+            <span
+                class="inline-flex items-center border-t-2 border-transparent pl-1 pt-4 text-sm font-medium text-gray-300">
+                Next
+                <svg class="ml-3 h-5 w-5 text-gray-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                    fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd"
+                        d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z"
+                        clip-rule="evenodd" />
+                </svg>
+            </span>
+            {% endif %}
+        </div>
+    </nav>
+</div>
+
+
+    
     <!-- ALL VIEW - General Audit Logs -->
     {% else %}
     <div class="mt-6">
@@ -752,40 +953,8 @@
 
     {% endif %}
 
-    <!-- EXPORT OPTIONS - Common to all views -->
-    <!-- <div class="mt-4 bg-white shadow rounded-lg p-4">
-        <h3 class="text-lg font-medium text-gray-900 mb-4">Export Logs</h3>
-        <div class="flex flex-wrap gap-3">
-            <a href="{{ url_for('admin.export_logs', type=log_type, format='csv', **request.args) }}"
-                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                <svg class="mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                </svg>
-                Export as CSV
-            </a>
-            <a href="{{ url_for('admin.export_logs', type=log_type, format='excel', **request.args) }}"
-                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                <svg class="mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                </svg>
-                Export as Excel
-            </a>
-            <a href="{{ url_for('admin.export_logs', type=log_type, format='pdf', **request.args) }}"
-                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
-                <svg class="mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                </svg>
-                Export as PDF
-            </a>
-        </div>
-    </div> -->
-    </script>
+    <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+    <script src="/static/js/socket.js"></script>
     {% endblock %}
 
 

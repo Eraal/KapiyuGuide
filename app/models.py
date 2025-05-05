@@ -7,6 +7,7 @@ class JsonSerializableMixin:
     def to_dict(self):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
+# Table of Different Kind of User Student, office_admin, super_admin
 class User(db.Model, UserMixin):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
@@ -17,7 +18,18 @@ class User(db.Model, UserMixin):
     password_hash = db.Column(db.String(255), nullable=False)
     role = db.Column(db.String(20), nullable=False, index=True)  # 'student', 'office_admin', 'super_admin'
     profile_pic = db.Column(db.String(255))
-    is_active = db.Column(db.Boolean, default=True, index=True)
+    is_active = db.Column(db.Boolean, default=True, index=True)  # Controls login permission
+    
+    # New fields for account violation tracking
+    account_locked = db.Column(db.Boolean, default=False, index=True)  # For rule violations
+    lock_reason = db.Column(db.String(255))  # Reason for account lock
+    locked_at = db.Column(db.DateTime)  # When the account was locked
+    locked_by_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'))  # Admin who locked the account
+    
+    # Track online status separately
+    is_online = db.Column(db.Boolean, default=False)
+    last_activity = db.Column(db.DateTime)  # Last user activity timestamp
+    
     created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
 
     student = db.relationship('Student', uselist=False, back_populates='user')
@@ -26,11 +38,71 @@ class User(db.Model, UserMixin):
     inquiry_messages = db.relationship('InquiryMessage', back_populates='sender', lazy=True)
     announcements = db.relationship('Announcement', back_populates='author', lazy=True)
     counseling_sessions = db.relationship('CounselingSession', back_populates='counselor', lazy=True)
+    
+    # Self-referential relationship for the locked_by field
+    locked_by = db.relationship('User', remote_side=[id], foreign_keys=[locked_by_id])
+    
+    # Add account_locks sent by this user (as admin)
+    account_locks_issued = db.relationship('AccountLockHistory', 
+                                          foreign_keys='AccountLockHistory.locked_by_id',
+                                          backref='locked_by_admin', lazy=True)
+    
+    # Add account_locks received by this user (as violator)
+    account_locks_received = db.relationship('AccountLockHistory', 
+                                            foreign_keys='AccountLockHistory.user_id',
+                                            backref='locked_user', lazy=True)
 
     def get_full_name(self):
         if self.middle_name:
             return f"{self.first_name} {self.middle_name} {self.last_name}"
         return f"{self.first_name} {self.last_name}"
+    
+    def can_login(self):
+        """Check if user can log in (is active and not locked)"""
+        return self.is_active and not self.account_locked
+    
+    def lock_account(self, admin_user, reason=None):
+        """Lock user account for rule violations"""
+        self.account_locked = True
+        self.lock_reason = reason
+        self.locked_at = datetime.utcnow()
+        self.locked_by_id = admin_user.id if admin_user else None
+        
+        # Create lock history record
+        lock_history = AccountLockHistory(
+            user_id=self.id,
+            locked_by_id=admin_user.id if admin_user else None,
+            reason=reason,
+            lock_type='lock'
+        )
+        db.session.add(lock_history)
+        return lock_history
+    
+    def unlock_account(self, admin_user, reason=None):
+        """Unlock a previously locked account"""
+        self.account_locked = False
+        
+        # Create unlock history record
+        unlock_history = AccountLockHistory(
+            user_id=self.id,
+            locked_by_id=admin_user.id if admin_user else None,
+            reason=reason,
+            lock_type='unlock'
+        )
+        db.session.add(unlock_history)
+        return unlock_history
+
+# New model to track account lock history
+class AccountLockHistory(db.Model):
+    __tablename__ = 'account_lock_history'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
+    locked_by_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), index=True)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+    reason = db.Column(db.String(255))
+    lock_type = db.Column(db.String(50), nullable=False)  # 'lock' or 'unlock'
+    
+    # Relationships defined via back_populates in User model
 
 class Office(db.Model):
     __tablename__ = 'offices'
@@ -62,21 +134,29 @@ class Student(db.Model):
     inquiries = db.relationship('Inquiry', back_populates='student', lazy=True)
     counseling_sessions = db.relationship('CounselingSession', back_populates='student', lazy=True)
 
-
-class Inquiry(db.Model):
-    __tablename__ = 'inquiries'
+# Add the missing InquiryConcern model
+class ConcernType(db.Model):
+    """Types of concerns that students can select when submitting inquiries"""
+    __tablename__ = 'concern_types'
     id = db.Column(db.Integer, primary_key=True)
-    student_id = db.Column(db.Integer, db.ForeignKey('students.id', ondelete='CASCADE'), nullable=False, index=True)
-    office_id = db.Column(db.Integer, db.ForeignKey('offices.id', ondelete='CASCADE'), nullable=False, index=True)
-    subject = db.Column(db.String(255), nullable=False)
-    status = db.Column(db.String(50), default='pending', index=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+    name = db.Column(db.String(100), nullable=False, unique=True)
+    description = db.Column(db.Text)
+    allows_other = db.Column(db.Boolean, default=False)  # Whether this concern type allows "Other" specification
+    
+    concerns = db.relationship('InquiryConcern', back_populates='concern_type', lazy=True)
 
-    student = db.relationship('Student', back_populates='inquiries')
-    office = db.relationship('Office', back_populates='inquiries')
-    messages = db.relationship('InquiryMessage', back_populates='inquiry', lazy=True)
+class InquiryConcern(db.Model):
+    """Junction table between inquiries and concern types with optional "other" specification"""
+    __tablename__ = 'inquiry_concerns'
+    id = db.Column(db.Integer, primary_key=True)
+    inquiry_id = db.Column(db.Integer, db.ForeignKey('inquiries.id', ondelete='CASCADE'), nullable=False, index=True)
+    concern_type_id = db.Column(db.Integer, db.ForeignKey('concern_types.id', ondelete='CASCADE'), nullable=False, index=True)
+    other_specification = db.Column(db.String(255))  # Only used when concern_type.allows_other is True
+    
+    inquiry = db.relationship('Inquiry', back_populates='concerns')
+    concern_type = db.relationship('ConcernType', back_populates='concerns')
 
-
+# Update to InquiryMessage class to include attachments
 class InquiryMessage(db.Model):
     __tablename__ = 'inquiry_messages'
     id = db.Column(db.Integer, primary_key=True)
@@ -91,8 +171,36 @@ class InquiryMessage(db.Model):
 
     inquiry = db.relationship('Inquiry', back_populates='messages')
     sender = db.relationship('User', back_populates='inquiry_messages')
+    attachments = db.relationship('MessageAttachment', back_populates='message', lazy=True, cascade='all, delete-orphan')
+    
+    def has_attachments(self):
+        """Check if message has any attachments"""
+        return len(self.attachments) > 0
+    
+# Update to Inquiry class to include attachments
+class Inquiry(db.Model):
+    __tablename__ = 'inquiries'
+    id = db.Column(db.Integer, primary_key=True)
+    student_id = db.Column(db.Integer, db.ForeignKey('students.id', ondelete='CASCADE'), nullable=False, index=True)
+    office_id = db.Column(db.Integer, db.ForeignKey('offices.id', ondelete='CASCADE'), nullable=False, index=True)
+    subject = db.Column(db.String(255), nullable=False)
+    status = db.Column(db.String(50), default='pending', index=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
 
-
+    student = db.relationship('Student', back_populates='inquiries')
+    office = db.relationship('Office', back_populates='inquiries')
+    messages = db.relationship('InquiryMessage', back_populates='inquiry', lazy=True)
+    concerns = db.relationship('InquiryConcern', back_populates='inquiry', lazy=True, cascade='all, delete-orphan')
+    attachments = db.relationship('InquiryAttachment', back_populates='inquiry', lazy=True, cascade='all, delete-orphan')
+    
+    def get_concern_types(self):
+        """Return all concern types associated with this inquiry"""
+        return [ic.concern_type for ic in self.concerns]
+        
+    def get_other_specifications(self):
+        """Return specifications for any 'Other' concerns"""
+        return {ic.concern_type_id: ic.other_specification for ic in self.concerns if ic.other_specification}
+    
 class Notification(db.Model):
     __tablename__ = 'notifications'
     id = db.Column(db.Integer, primary_key=True)
@@ -103,7 +211,54 @@ class Notification(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
 
     user = db.relationship('User', back_populates='notifications')
+    
+class FileAttachment(db.Model):
+    """Base model for file attachments"""
+    __tablename__ = 'file_attachments'
+    id = db.Column(db.Integer, primary_key=True)
+    filename = db.Column(db.String(255), nullable=False)
+    file_path = db.Column(db.String(255), nullable=False)  # Storage path
+    file_size = db.Column(db.Integer)  # Size in bytes
+    file_type = db.Column(db.String(100))  # MIME type
+    uploaded_by_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), index=True)
+    uploaded_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Polymorphic identity column
+    attachment_type = db.Column(db.String(50))
+    
+    # Relationship to uploader
+    uploaded_by = db.relationship('User')
+    
+    __mapper_args__ = {
+        'polymorphic_on': attachment_type,
+        'polymorphic_identity': 'file_attachment'
+    }
 
+class InquiryAttachment(FileAttachment):
+    """Files attached to an inquiry"""
+    __tablename__ = 'inquiry_attachments'
+    id = db.Column(db.Integer, db.ForeignKey('file_attachments.id', ondelete='CASCADE'), primary_key=True)
+    inquiry_id = db.Column(db.Integer, db.ForeignKey('inquiries.id', ondelete='CASCADE'), nullable=False, index=True)
+    
+    # Relationship to inquiry
+    inquiry = db.relationship('Inquiry', back_populates='attachments')
+    
+    __mapper_args__ = {
+        'polymorphic_identity': 'inquiry_attachment'
+    }
+
+class MessageAttachment(FileAttachment):
+    """Files attached to a message"""
+    __tablename__ = 'message_attachments'
+    id = db.Column(db.Integer, db.ForeignKey('file_attachments.id', ondelete='CASCADE'), primary_key=True)
+    message_id = db.Column(db.Integer, db.ForeignKey('inquiry_messages.id', ondelete='CASCADE'), nullable=False, index=True)
+    
+    # Relationship to message
+    message = db.relationship('InquiryMessage', back_populates='attachments')
+    
+    __mapper_args__ = {
+        'polymorphic_identity': 'message_attachment'
+    }
 
 class CounselingSession(db.Model):
     __tablename__ = 'counseling_sessions'

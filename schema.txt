@@ -1,0 +1,321 @@
+-- Create users table
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    first_name VARCHAR(50) NOT NULL,
+    middle_name VARCHAR(50),
+    last_name VARCHAR(50) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    role VARCHAR(20) NOT NULL,
+    profile_pic VARCHAR(255),
+    is_active BOOLEAN DEFAULT TRUE,
+    account_locked BOOLEAN DEFAULT FALSE,
+    lock_reason VARCHAR(255),
+    locked_at TIMESTAMP,
+    locked_by_id INTEGER,
+    is_online BOOLEAN DEFAULT FALSE,
+    last_activity TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create indexes on users table
+CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_users_role ON users(role);
+CREATE INDEX idx_users_is_active ON users(is_active);
+CREATE INDEX idx_users_account_locked ON users(account_locked);
+CREATE INDEX idx_users_created_at ON users(created_at);
+
+-- Create offices table
+CREATE TABLE offices (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    supports_video BOOLEAN DEFAULT FALSE
+);
+
+-- Create index on offices
+CREATE INDEX idx_offices_name ON offices(name);
+
+-- Create students table
+CREATE TABLE students (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    student_number VARCHAR(50)
+);
+
+-- Create index on students
+CREATE INDEX idx_students_user_id ON students(user_id);
+CREATE INDEX idx_students_student_number ON students(student_number);
+
+-- Create office_admins table
+CREATE TABLE office_admins (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    office_id INTEGER NOT NULL REFERENCES offices(id) ON DELETE CASCADE
+);
+
+-- Create indexes on office_admins
+CREATE INDEX idx_office_admins_user_id ON office_admins(user_id);
+CREATE INDEX idx_office_admins_office_id ON office_admins(office_id);
+
+-- Create concern_types table
+CREATE TABLE concern_types (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE,
+    description TEXT,
+    allows_other BOOLEAN DEFAULT FALSE
+);
+
+-- Create inquiries table
+CREATE TABLE inquiries (
+    id SERIAL PRIMARY KEY,
+    student_id INTEGER NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+    office_id INTEGER NOT NULL REFERENCES offices(id) ON DELETE CASCADE,
+    subject VARCHAR(255) NOT NULL,
+    status VARCHAR(50) DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create indexes on inquiries
+CREATE INDEX idx_inquiries_student_id ON inquiries(student_id);
+CREATE INDEX idx_inquiries_office_id ON inquiries(office_id);
+CREATE INDEX idx_inquiries_status ON inquiries(status);
+CREATE INDEX idx_inquiries_created_at ON inquiries(created_at);
+
+-- Create inquiry_concerns table (junction table)
+CREATE TABLE inquiry_concerns (
+    id SERIAL PRIMARY KEY,
+    inquiry_id INTEGER NOT NULL REFERENCES inquiries(id) ON DELETE CASCADE,
+    concern_type_id INTEGER NOT NULL REFERENCES concern_types(id) ON DELETE CASCADE,
+    other_specification VARCHAR(255)
+);
+
+-- Create indexes on inquiry_concerns
+CREATE INDEX idx_inquiry_concerns_inquiry_id ON inquiry_concerns(inquiry_id);
+CREATE INDEX idx_inquiry_concerns_concern_type_id ON inquiry_concerns(concern_type_id);
+
+-- Create inquiry_messages table
+CREATE TABLE inquiry_messages (
+    id SERIAL PRIMARY KEY,
+    inquiry_id INTEGER NOT NULL REFERENCES inquiries(id) ON DELETE CASCADE,
+    sender_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    content TEXT NOT NULL,
+    status VARCHAR(50) DEFAULT 'sent',
+    delivered_at TIMESTAMP,
+    read_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create indexes on inquiry_messages
+CREATE INDEX idx_inquiry_messages_inquiry_id ON inquiry_messages(inquiry_id);
+CREATE INDEX idx_inquiry_messages_sender_id ON inquiry_messages(sender_id);
+CREATE INDEX idx_inquiry_messages_status ON inquiry_messages(status);
+CREATE INDEX idx_inquiry_messages_created_at ON inquiry_messages(created_at);
+
+-- Create notifications table
+CREATE TABLE notifications (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL,
+    message TEXT NOT NULL,
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create indexes on notifications
+CREATE INDEX idx_notifications_user_id ON notifications(user_id);
+CREATE INDEX idx_notifications_is_read ON notifications(is_read);
+CREATE INDEX idx_notifications_created_at ON notifications(created_at);
+
+-- Create file_attachments table (parent table for polymorphic attachments)
+CREATE TABLE file_attachments (
+    id SERIAL PRIMARY KEY,
+    filename VARCHAR(255) NOT NULL,
+    file_path VARCHAR(255) NOT NULL,
+    file_size INTEGER,
+    file_type VARCHAR(100),
+    uploaded_by_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    attachment_type VARCHAR(50)
+);
+
+-- Create index on file_attachments
+CREATE INDEX idx_file_attachments_uploaded_by_id ON file_attachments(uploaded_by_id);
+
+-- Create inquiry_attachments table (child table for polymorphic attachments)
+CREATE TABLE inquiry_attachments (
+    id INTEGER PRIMARY KEY REFERENCES file_attachments(id) ON DELETE CASCADE,
+    inquiry_id INTEGER NOT NULL REFERENCES inquiries(id) ON DELETE CASCADE
+);
+
+-- Create index on inquiry_attachments
+CREATE INDEX idx_inquiry_attachments_inquiry_id ON inquiry_attachments(inquiry_id);
+
+-- Create message_attachments table (child table for polymorphic attachments)
+CREATE TABLE message_attachments (
+    id INTEGER PRIMARY KEY REFERENCES file_attachments(id) ON DELETE CASCADE,
+    message_id INTEGER NOT NULL REFERENCES inquiry_messages(id) ON DELETE CASCADE
+);
+
+-- Create index on message_attachments
+CREATE INDEX idx_message_attachments_message_id ON message_attachments(message_id);
+
+-- Create counseling_sessions table
+CREATE TABLE counseling_sessions (
+    id SERIAL PRIMARY KEY,
+    student_id INTEGER NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+    office_id INTEGER NOT NULL REFERENCES offices(id) ON DELETE CASCADE,
+    counselor_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    scheduled_at TIMESTAMP NOT NULL,
+    status VARCHAR(50) DEFAULT 'pending',
+    notes TEXT
+);
+
+-- Create indexes on counseling_sessions
+CREATE INDEX idx_counseling_sessions_student_id ON counseling_sessions(student_id);
+CREATE INDEX idx_counseling_sessions_office_id ON counseling_sessions(office_id);
+CREATE INDEX idx_counseling_sessions_counselor_id ON counseling_sessions(counselor_id);
+CREATE INDEX idx_counseling_sessions_scheduled_at ON counseling_sessions(scheduled_at);
+CREATE INDEX idx_counseling_sessions_status ON counseling_sessions(status);
+
+-- Create announcements table
+CREATE TABLE announcements (
+    id SERIAL PRIMARY KEY,
+    author_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL,
+    content TEXT NOT NULL,
+    target_office_id INTEGER REFERENCES offices(id) ON DELETE SET NULL,
+    is_public BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create indexes on announcements
+CREATE INDEX idx_announcements_author_id ON announcements(author_id);
+CREATE INDEX idx_announcements_target_office_id ON announcements(target_office_id);
+CREATE INDEX idx_announcements_is_public ON announcements(is_public);
+CREATE INDEX idx_announcements_created_at ON announcements(created_at);
+
+-- Create announcement_images table
+CREATE TABLE announcement_images (
+    id SERIAL PRIMARY KEY,
+    announcement_id INTEGER NOT NULL REFERENCES announcements(id) ON DELETE CASCADE,
+    image_path VARCHAR(255) NOT NULL,
+    caption VARCHAR(255),
+    display_order INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create index on announcement_images
+CREATE INDEX idx_announcement_images_announcement_id ON announcement_images(announcement_id);
+
+-- Create account_lock_history table (new in the updated model)
+CREATE TABLE account_lock_history (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    locked_by_id INTEGER REFERENCES users(id) ON DELETE SET NULL, 
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    reason VARCHAR(255),
+    lock_type VARCHAR(50) NOT NULL
+);
+
+-- Create indexes on account_lock_history
+CREATE INDEX idx_account_lock_history_user_id ON account_lock_history(user_id);
+CREATE INDEX idx_account_lock_history_locked_by_id ON account_lock_history(locked_by_id);
+CREATE INDEX idx_account_lock_history_timestamp ON account_lock_history(timestamp);
+
+-- Create audit_logs table
+CREATE TABLE audit_logs (
+    id SERIAL PRIMARY KEY,
+    actor_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    actor_role VARCHAR(20),
+    action VARCHAR(100) NOT NULL,
+    target_type VARCHAR(50),
+    inquiry_id INTEGER REFERENCES inquiries(id) ON DELETE SET NULL,
+    office_id INTEGER REFERENCES offices(id) ON DELETE SET NULL,
+    status_snapshot VARCHAR(50),
+    is_success BOOLEAN DEFAULT TRUE,
+    failure_reason VARCHAR(255),
+    ip_address VARCHAR(45),
+    user_agent VARCHAR(255),
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    retention_days INTEGER DEFAULT 365
+);
+
+-- Create indexes on audit_logs
+CREATE INDEX idx_audit_logs_actor_id ON audit_logs(actor_id);
+CREATE INDEX idx_audit_logs_actor_role ON audit_logs(actor_role);
+CREATE INDEX idx_audit_logs_action ON audit_logs(action);
+CREATE INDEX idx_audit_logs_target_type ON audit_logs(target_type);
+CREATE INDEX idx_audit_logs_inquiry_id ON audit_logs(inquiry_id);
+CREATE INDEX idx_audit_logs_office_id ON audit_logs(office_id);
+CREATE INDEX idx_audit_logs_timestamp ON audit_logs(timestamp);
+
+-- Create student_activity_logs table
+CREATE TABLE student_activity_logs (
+    id SERIAL PRIMARY KEY,
+    student_id INTEGER REFERENCES students(id) ON DELETE CASCADE,
+    action VARCHAR(100) NOT NULL,
+    related_id INTEGER,
+    related_type VARCHAR(50),
+    is_success BOOLEAN DEFAULT TRUE,
+    failure_reason VARCHAR(255),
+    ip_address VARCHAR(45),
+    user_agent VARCHAR(255),
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    retention_days INTEGER DEFAULT 365
+);
+
+-- Create indexes on student_activity_logs
+CREATE INDEX idx_student_activity_logs_student_id ON student_activity_logs(student_id);
+CREATE INDEX idx_student_activity_logs_action ON student_activity_logs(action);
+CREATE INDEX idx_student_activity_logs_related_id ON student_activity_logs(related_id);
+CREATE INDEX idx_student_activity_logs_related_type ON student_activity_logs(related_type);
+CREATE INDEX idx_student_activity_logs_timestamp ON student_activity_logs(timestamp);
+
+-- Create office_login_logs table
+CREATE TABLE office_login_logs (
+    id SERIAL PRIMARY KEY,
+    office_admin_id INTEGER REFERENCES office_admins(id) ON DELETE CASCADE,
+    login_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    logout_time TIMESTAMP,
+    ip_address VARCHAR(45),
+    user_agent VARCHAR(255),
+    session_duration INTEGER,
+    is_success BOOLEAN DEFAULT TRUE,
+    failure_reason VARCHAR(255),
+    retention_days INTEGER DEFAULT 365
+);
+
+-- Create indexes on office_login_logs
+CREATE INDEX idx_office_login_logs_office_admin_id ON office_login_logs(office_admin_id);
+CREATE INDEX idx_office_login_logs_login_time ON office_login_logs(login_time);
+
+-- Create super_admin_activity_logs table
+CREATE TABLE super_admin_activity_logs (
+    id SERIAL PRIMARY KEY,
+    super_admin_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    action VARCHAR(100) NOT NULL,
+    target_type VARCHAR(50),
+    target_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    target_office_id INTEGER REFERENCES offices(id) ON DELETE SET NULL,
+    details TEXT,
+    is_success BOOLEAN DEFAULT TRUE,
+    failure_reason VARCHAR(255),
+    ip_address VARCHAR(45),
+    user_agent VARCHAR(255),
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    retention_days INTEGER DEFAULT 730
+);
+
+-- Create indexes on super_admin_activity_logs
+CREATE INDEX idx_super_admin_activity_logs_super_admin_id ON super_admin_activity_logs(super_admin_id);
+CREATE INDEX idx_super_admin_activity_logs_action ON super_admin_activity_logs(action);
+CREATE INDEX idx_super_admin_activity_logs_target_type ON super_admin_activity_logs(target_type);
+CREATE INDEX idx_super_admin_activity_logs_target_user_id ON super_admin_activity_logs(target_user_id);
+CREATE INDEX idx_super_admin_activity_logs_target_office_id ON super_admin_activity_logs(target_office_id);
+CREATE INDEX idx_super_admin_activity_logs_timestamp ON super_admin_activity_logs(timestamp);
+
+-- Add foreign key constraint for users.locked_by_id
+ALTER TABLE users
+    ADD CONSTRAINT fk_users_locked_by_id 
+    FOREIGN KEY (locked_by_id) REFERENCES users(id) ON DELETE SET NULL;

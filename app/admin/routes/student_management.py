@@ -1,4 +1,4 @@
-from app.models import Inquiry, InquiryMessage, User, Office, db, OfficeAdmin, Student, CounselingSession, StudentActivityLog, SuperAdminActivityLog, OfficeLoginLog, AuditLog
+from app.models import Inquiry, InquiryMessage, User, Office, db, OfficeAdmin, Student, CounselingSession, StudentActivityLog, SuperAdminActivityLog, OfficeLoginLog, AuditLog, AccountLockHistory
 from flask import Blueprint, redirect, url_for, render_template, jsonify, request, flash, Response
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import login_required, current_user
@@ -38,17 +38,18 @@ def student_manage():
                            inactive_students=inactive_students,
                            recently_registered=recently_registered)
 
-@admin_bp.route('/toggle_student_status', methods=['POST'])
+@admin_bp.route('/toggle_student_lock', methods=['POST'])
 @login_required
-def toggle_student_status():
+def toggle_student_lock():
     if current_user.role != 'super_admin':
         return jsonify({'success': False, 'message': 'Access denied'}), 403
     
     data = request.json
     student_id = data.get('student_id')
-    is_active = data.get('is_active')
+    should_lock = data.get('should_lock')  # True = lock, False = unlock
+    reason = data.get('reason', '')  # Optional reason for locking
     
-    if student_id is None or is_active is None:
+    if student_id is None or should_lock is None:
         return jsonify({'success': False, 'message': 'Missing required data'}), 400
     
     try:
@@ -56,18 +57,54 @@ def toggle_student_status():
         if not student:
             return jsonify({'success': False, 'message': 'Student not found'}), 404
         
-        student.user.is_active = bool(is_active)
+        # Get the user associated with the student
+        user = student.user
+        
+        # Toggle account lock status
+        if should_lock:
+            # Lock the account using the method from User model
+            lock_history = user.lock_account(current_user, reason)
+            action = 'locked'
+        else:
+            # Unlock the account using the method from User model
+            unlock_history = user.unlock_account(current_user, reason)
+            action = 'unlocked'
+        
+        # Log the super admin action
+        SuperAdminActivityLog.log_action(
+            super_admin=current_user,
+            action=f'Student account {action}',
+            target_type='user',
+            target_user=user,
+            details=f'Student ID: {student.id}, Student Number: {student.student_number}, Reason: {reason}',
+            ip_address=request.remote_addr,
+            user_agent=request.user_agent.string
+        )
+        
+        # Create an audit log entry
+        AuditLog.log_action(
+            actor=current_user,
+            action=f'Student account {action}',
+            target_type='user',
+            status=f'Account {action}',
+            ip_address=request.remote_addr,
+            user_agent=request.user_agent.string
+        )
+        
         db.session.commit()
         
-        status = 'activated' if is_active else 'deactivated'
-        flash(f'Student account has been {status}', 'success')
-        
-        return jsonify({'success': True, 'message': 'Student status updated successfully'})
+        # Return success response with updated status
+        return jsonify({
+            'success': True, 
+            'message': f'Student account has been {action}',
+            'account_locked': user.account_locked,
+            'lock_reason': user.lock_reason,
+            'locked_at': user.locked_at.strftime('%Y-%m-%d %H:%M:%S') if user.locked_at else None
+        })
     
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'message': str(e)}), 500
-    
 
 
 @admin_bp.route('/view_student/<int:student_id>', methods=['GET', 'POST'])

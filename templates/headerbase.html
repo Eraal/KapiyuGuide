@@ -130,6 +130,22 @@
     <p class="text-sm">© 2025 | KapiyuGuide | All rights reserved.</p>
   </footer>
 
+  <!-- Socket.IO Client Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.min.js"></script>
+    
+
+  
+  <!-- Role-specific WebSocket scripts -->
+  {% if current_user.is_authenticated %}
+      {% if current_user.role == 'student' %}
+          <script src="{{ url_for('static', filename='js/student/student_socket.js') }}"></script>
+      {% elif current_user.role == 'office_admin' %}
+          <script src="{{ url_for('static', filename='js/admin/office_socket.js') }}"></script>
+      {% elif current_user.role == 'super_admin' %}
+          <script src="{{ url_for('static', filename='js/admin/admin_socket.js') }}"></script>
+      {% endif %}
+  {% endif %}
+
   <!-- JavaScript -->
   <script>
     // Mobile menu toggle

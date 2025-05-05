@@ -1,0 +1,652 @@
+
+{% extends "admin/adminbase.html" %}
+
+{% block title %}Office Statistics - KapiyuGuide Admin{% endblock %}
+
+{% block content %}
+<div class="bg-white p-6 rounded-lg shadow-md mb-6">
+    <h1 class="text-2xl font-bold text-blue-800 mb-4">Office Statistics</h1>
+    <p class="text-gray-600 mb-4">View and manage all offices and office admins in the system.</p>
+
+    <!-- Dashboard Summary Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+            <div class="flex justify-between items-center mb-2">
+                <h3 class="font-semibold text-blue-800">Total Offices</h3>
+                <i class="fas fa-building text-blue-500 text-lg"></i>
+            </div>
+            <p class="text-3xl font-bold text-blue-700">{{ offices|length }}</p>
+            <p class="text-sm text-blue-600">{{ active_offices|length }} active</p>
+        </div>
+        
+        <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+            <div class="flex justify-between items-center mb-2">
+                <h3 class="font-semibold text-green-800">Office Admins</h3>
+                <i class="fas fa-users-cog text-green-500 text-lg"></i>
+            </div>
+            <p class="text-3xl font-bold text-green-700">{{ admins|length }}</p>
+            <p class="text-sm text-green-600">{{ active_admins|length }} active</p>
+        </div>
+        
+        <div class="bg-purple-50 p-4 rounded-lg border border-purple-200">
+            <div class="flex justify-between items-center mb-2">
+                <h3 class="font-semibold text-purple-800">Total Inquiries</h3>
+                <i class="fas fa-question-circle text-purple-500 text-lg"></i>
+            </div>
+            <p class="text-3xl font-bold text-purple-700">{{ total_inquiries }}</p>
+            <p class="text-sm text-purple-600">{{ pending_inquiries }} pending</p>
+        </div>
+    </div>
+
+    <!-- Tabs for different views -->
+    <div class="mb-6 border-b">
+        <ul class="flex flex-wrap -mb-px" id="myTab" role="tablist">
+            <li class="mr-2" role="presentation">
+                <button class="inline-block py-2 px-4 font-medium text-center text-blue-800 border-b-2 border-blue-800 active" 
+                        id="offices-tab" 
+                        data-tabs-target="#offices" 
+                        type="button" 
+                        role="tab" 
+                        aria-controls="offices" 
+                        aria-selected="true">
+                    Offices
+                </button>
+            </li>
+            <li class="mr-2" role="presentation">
+                <button class="inline-block py-2 px-4 font-medium text-center text-gray-500 border-b-2 border-transparent hover:text-blue-800 hover:border-blue-300" 
+                        id="admins-tab" 
+                        data-tabs-target="#admins" 
+                        type="button" 
+                        role="tab" 
+                        aria-controls="admins" 
+                        aria-selected="false">
+                    Office Admins
+                </button>
+            </li>
+            <li role="presentation">
+                <button class="inline-block py-2 px-4 font-medium text-center text-gray-500 border-b-2 border-transparent hover:text-blue-800 hover:border-blue-300" 
+                        id="unassigned-tab" 
+                        data-tabs-target="#unassigned" 
+                        type="button" 
+                        role="tab" 
+                        aria-controls="unassigned" 
+                        aria-selected="false">
+                    Unassigned
+                </button>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Tab Content -->
+    <div id="myTabContent">
+        <!-- Offices Tab -->
+        <div class="active" id="offices" role="tabpanel" aria-labelledby="offices-tab">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold text-gray-800">All Offices</h2>
+                <div class="flex space-x-2">
+                    <div class="relative">
+                        <input type="text" id="officeSearch" placeholder="Search offices..." class="pl-8 pr-4 py-2 border rounded-lg focus:ring focus:ring-blue-300 focus:border-blue-500">
+                        <div class="absolute left-3 top-3 text-gray-400">
+                            <i class="fas fa-search"></i>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('admin.add_office') }}" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                        <i class="fas fa-plus mr-1"></i> Add Office
+                    </a>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200" id="officesTable">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Office Name
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Description
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Admins
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Inquiries
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Status
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Actions
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for office in offices %}
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-10 w-10 bg-blue-100 text-blue-800 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-building"></i>
+                                    </div>
+                                    <div class="ml-4">
+                                        <div class="text-sm font-medium text-gray-900">{{ office.name }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="text-sm text-gray-900">{{ office.description|truncate(100) }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">{{ office.office_admins|length }}</div>
+                                {% if office.office_admins %}
+                                <div class="text-xs text-gray-500">
+                                    {% for admin in office.office_admins[:2] %}
+                                    <span class="block">{{ admin.user.get_full_name() }}</span>
+                                    {% endfor %}
+                                    {% if office.office_admins|length > 2 %}
+                                    <span class="block text-blue-600">+{{ office.office_admins|length - 2 }} more</span>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">{{ office.inquiries|length }}</div>
+                                <div class="text-xs text-gray-500">{{ office.inquiries|selectattr('status', 'equalto', 'pending')|list|length }} pending</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% if office.office_admins|length > 0 %}
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                    Active
+                                </span>
+                                {% else %}
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                    No Admins
+                                </span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <div class="flex space-x-2">
+                                    <button onclick="viewOfficeDetails({{ office.id }})" class="text-blue-600 hover:text-blue-900">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button onclick="editOffice({{ office.id }})" class="text-green-600 hover:text-green-900">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+  
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Office Admins Tab -->
+        <div class="hidden" id="admins" role="tabpanel" aria-labelledby="admins-tab">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold text-gray-800">Office Administrators</h2>
+                <div class="flex space-x-2">
+                    <div class="relative">
+                        <input type="text" id="adminSearch" placeholder="Search admins..." class="pl-8 pr-4 py-2 border rounded-lg focus:ring focus:ring-blue-300 focus:border-blue-500">
+                        <div class="absolute left-3 top-3 text-gray-400">
+                            <i class="fas fa-search"></i>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('admin.manage_office_admins') }}" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                        <i class="fas fa-plus mr-1"></i> Add Admin
+                    </a>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200" id="adminsTable">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Admin Name
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Email
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Office
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Status
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Last Login
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Actions
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for admin in office_admins %}
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-10 w-10 rounded-full bg-blue-800 text-white flex items-center justify-center">
+                                        {% if admin.user.profile_pic %}
+                                        <img src="{{ admin.user.profile_pic }}" alt="Profile" class="h-10 w-10 rounded-full">
+                                        {% else %}
+                                        <div class="text-lg font-bold">{{ admin.user.first_name[0] }}{{ admin.user.last_name[0] }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="ml-4">
+                                        <div class="text-sm font-medium text-gray-900">{{ admin.user.get_full_name() }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="text-sm text-gray-900">{{ admin.user.email }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">{{ admin.office.name }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {% if admin.user.is_active %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                                    {{ 'Active' if admin.user.is_active else 'Inactive' }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {% if admin.user.last_login %}
+                                {{ admin.user.last_login.strftime('%Y-%m-%d %H:%M') }}
+                                {% else %}
+                                Never
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <div class="flex space-x-2">
+                                    <button onclick="viewAdminDetails({{ admin.id }})" class="text-blue-600 hover:text-blue-900">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button onclick="editAdmin({{ admin.id }})" class="text-green-600 hover:text-green-900">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button onclick="unassignAdmin({{ admin.id }})" class="text-red-600 hover:text-red-900">
+                                        <i class="fas fa-user-minus"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Unassigned Tab -->
+        <div class="hidden" id="unassigned" role="tabpanel" aria-labelledby="unassigned-tab">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Unassigned Offices Section -->
+                <div>
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Offices Without Admins</h2>
+                    <div class="bg-white overflow-hidden shadow rounded-lg">
+                        <ul class="divide-y divide-gray-200">
+                            {% for office in unassigned_offices %}
+                            <li class="p-4 hover:bg-gray-50">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <h3 class="text-lg font-medium text-gray-900">{{ office.name }}</h3>
+                                        <p class="text-sm text-gray-500">{{ office.description|truncate(100) }}</p>
+                                    </div>
+                                    <div>
+                                        <button onclick="assignAdmin({{ office.id }})" class="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                            <i class="fas fa-user-plus mr-1"></i> Assign Admin
+                                        </button>
+                                    </div>
+                                </div>
+                            </li>
+                            {% else %}
+                            <li class="p-4">
+                                <p class="text-center text-gray-500">All offices have at least one admin assigned.</p>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Unassigned Admins Section -->
+                <div>
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Unassigned Office Admins</h2>
+                    <div class="bg-white overflow-hidden shadow rounded-lg">
+                        <ul class="divide-y divide-gray-200">
+                            {% for admin in unassigned_admins %}
+                            <li class="p-4 hover:bg-gray-50">
+                                <div class="flex justify-between items-center">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-10 w-10 rounded-full bg-blue-800 text-white flex items-center justify-center">
+                                            {% if admin.profile_pic %}
+                                            <img src="{{ admin.profile_pic }}" alt="Profile" class="h-10 w-10 rounded-full">
+                                            {% else %}
+                                            <div class="text-lg font-bold">{{ admin.first_name[0] }}{{ admin.last_name[0] }}</div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="ml-4">
+                                            <h3 class="text-lg font-medium text-gray-900">{{ admin.get_full_name() }}</h3>
+                                            <p class="text-sm text-gray-500">{{ admin.email }}</p>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <button onclick="assignOffice({{ admin.id }})" class="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                            <i class="fas fa-building mr-1"></i> Assign Office
+                                        </button>
+                                    </div>
+                                </div>
+                            </li>
+                            {% else %}
+                            <li class="p-4">
+                                <p class="text-center text-gray-500">All office admins are assigned to offices.</p>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Office Details Modal -->
+<div id="officeDetailsModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full" style="z-index: 100;">
+    <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <div class="flex justify-between items-center pb-3 border-b">
+                <h3 class="text-xl font-medium text-gray-900" id="officeModalTitle">Office Details</h3>
+                <button type="button" class="text-gray-400 hover:text-gray-500" onclick="closeModal('officeDetailsModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="mt-4" id="officeModalContent">
+                <!-- Office details will be loaded here -->
+                <div class="flex justify-center">
+                    <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+                </div>
+            </div>
+            <div class="mt-4 flex justify-end space-x-3 border-t pt-3">
+                <button type="button" onclick="closeModal('officeDetailsModal')" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Assign Admin to Office Modal -->
+<div id="assignAdminModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full" style="z-index: 100;">
+    <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <div class="flex justify-between items-center pb-3 border-b">
+                <h3 class="text-xl font-medium text-gray-900">Assign Admin to Office</h3>
+                <button type="button" class="text-gray-400 hover:text-gray-500" onclick="closeModal('assignAdminModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="mt-4">
+                <form id="assignAdminForm" action="{{ url_for('admin.assign_admin_to_office') }}" method="POST">
+                    <input type="hidden" id="officeIdInput" name="office_id">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    
+                    <div class="mb-4">
+                        <label for="adminSelect" class="block text-sm font-medium text-gray-700">Select Admin</label>
+                        <select id="adminSelect" name="admin_id" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                            <option value="">-- Select an Admin --</option>
+                            {% for admin in available_admins %}
+                            <option value="{{ admin.id }}">{{ admin.get_full_name() }} ({{ admin.email }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mt-5 flex justify-end space-x-3">
+                        <button type="button" onclick="closeModal('assignAdminModal')" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">
+                            Cancel
+                        </button>
+                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                            Assign
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Assign Office to Admin Modal -->
+<div id="assignOfficeModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full" style="z-index: 100;">
+    <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <div class="flex justify-between items-center pb-3 border-b">
+                <h3 class="text-xl font-medium text-gray-900">Assign Office to Admin</h3>
+                <button type="button" class="text-gray-400 hover:text-gray-500" onclick="closeModal('assignOfficeModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="mt-4">
+                <form id="assignOfficeForm" action="{{ url_for('admin.assign_office_to_admin') }}" method="POST">
+                    <input type="hidden" id="adminIdInput" name="admin_id">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    
+                    <div class="mb-4">
+                        <label for="officeSelect" class="block text-sm font-medium text-gray-700">Select Office</label>
+                        <select id="officeSelect" name="office_id" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                            <option value="">-- Select an Office --</option>
+                            {% for office in offices %}
+                            <option value="{{ office.id }}">{{ office.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mt-5 flex justify-end space-x-3">
+                        <button type="button" onclick="closeModal('assignOfficeModal')" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">
+                            Cancel
+                        </button>
+                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                            Assign
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div id="confirmationModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full" style="z-index: 100;">
+    <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <div class="flex justify-between items-center pb-3 border-b">
+                <h3 class="text-xl font-medium text-gray-900" id="confirmationTitle">Confirm Action</h3>
+                <button type="button" class="text-gray-400 hover:text-gray-500" onclick="closeModal('confirmationModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="mt-4">
+                <p class="text-gray-700" id="confirmationMessage">Are you sure you want to perform this action?</p>
+            </div>
+            <div class="mt-5 flex justify-end space-x-3">
+                <button type="button" onclick="closeModal('confirmationModal')" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">
+                    Cancel
+                </button>
+                <button type="button" id="confirmActionBtn" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
+                    Confirm
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Tab functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const tabs = document.querySelectorAll('[data-tabs-target]');
+    const tabContents = document.querySelectorAll('#myTabContent > div');
+    
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const target = document.querySelector(tab.dataset.tabsTarget);
+            
+            tabContents.forEach(tabContent => {
+                tabContent.classList.add('hidden');
+            });
+            
+            tabs.forEach(t => {
+                t.classList.remove('text-blue-800', 'border-blue-800');
+                t.classList.add('text-gray-500', 'border-transparent');
+                t.setAttribute('aria-selected', 'false');
+            });
+            
+            tab.classList.remove('text-gray-500', 'border-transparent');
+            tab.classList.add('text-blue-800', 'border-blue-800');
+            tab.setAttribute('aria-selected', 'true');
+            
+            target.classList.remove('hidden');
+        });
+    });
+    
+    // Filter tables
+    document.getElementById('officeSearch').addEventListener('keyup', function() {
+        filterTable('officesTable', this.value);
+    });
+    
+    document.getElementById('adminSearch').addEventListener('keyup', function() {
+        filterTable('adminsTable', this.value);
+    });
+    
+    if (document.getElementById('assignAdminForm')) {
+        document.getElementById('assignAdminForm').addEventListener('submit', function(e) {
+            if (!document.getElementById('adminSelect').value) {
+                e.preventDefault();
+                alert('Please select an admin');
+            }
+            
+            // Add CSRF token to form if it doesn't exist
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            let csrfInput = this.querySelector('input[name="csrf_token"]');
+            if (!csrfInput) {
+                csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = 'csrf_token';
+                csrfInput.value = csrfToken;
+                this.appendChild(csrfInput);
+            }
+        });
+    }
+    
+    if (document.getElementById('assignOfficeForm')) {
+        document.getElementById('assignOfficeForm').addEventListener('submit', function(e) {
+            if (!document.getElementById('officeSelect').value) {
+                e.preventDefault();
+                alert('Please select an office');
+            }
+            
+            // Add CSRF token to form if it doesn't exist
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            let csrfInput = this.querySelector('input[name="csrf_token"]');
+            if (!csrfInput) {
+                csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = 'csrf_token';
+                csrfInput.value = csrfToken;
+                this.appendChild(csrfInput);
+            }
+        });
+    }
+    
+    const flashMessage = document.getElementById('flashMessage');
+    if (flashMessage) {
+        setTimeout(function() {
+            flashMessage.style.opacity = '0';
+            setTimeout(function() {
+                flashMessage.style.display = 'none';
+            }, 500);
+        }, 5000);
+    }
+});
+
+// Table filter function
+function filterTable(tableId, query) {
+    query = query.toLowerCase();
+    const table = document.getElementById(tableId);
+    const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+    
+    for (let i = 0; i < rows.length; i++) {
+        const textContent = rows[i].textContent.toLowerCase();
+        rows[i].style.display = textContent.includes(query) ? '' : 'none';
+    }
+}
+
+// Modal handling functions
+function openModal(modalId) {
+    document.getElementById(modalId).classList.remove('hidden');
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).classList.add('hidden');
+}
+
+// Office actions
+function viewOfficeDetails(officeId) {
+    // Redirect to office detail page
+    window.location.href = `/admin/office/${officeId}/`;
+}
+
+function editOffice(officeId) {
+    window.location.href = `/admin/office/${officeId}/`;
+}
+
+// Admin actions
+function viewAdminDetails(adminId) {
+    window.location.href = `/admin/office_admin/${adminId}/`;
+}
+
+function editAdmin(adminId) {
+    window.location.href = `/admin/edit_office_admin/${adminId}/`;
+}
+
+function unassignAdmin(adminId) {
+    document.getElementById('confirmationTitle').textContent = 'Unassign Admin';
+    document.getElementById('confirmationMessage').textContent = 'Are you sure you want to unassign this admin from their office?';
+    
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/admin/office_admin/${adminId}/unassign/`;
+    
+    // Add CSRF token
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = 'csrf_token';
+    csrfInput.value = csrfToken;
+    form.appendChild(csrfInput);
+    
+    
+    document.getElementById('confirmActionBtn').onclick = function() {
+        document.body.appendChild(form);
+        form.submit();
+        closeModal('confirmationModal');
+    };
+    
+    openModal('confirmationModal');
+}
+
+// Assignment actions
+function assignAdmin(officeId) {
+    document.getElementById('officeIdInput').value = officeId;
+    openModal('assignAdminModal');
+}
+
+function assignOffice(adminId) {
+    document.getElementById('adminIdInput').value = adminId;
+    openModal('assignOfficeModal');
+}
+    
+</script>
+<script src="/static/js/socket.js"></script>
+{% endblock %}

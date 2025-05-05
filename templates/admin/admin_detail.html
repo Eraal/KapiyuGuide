@@ -1,0 +1,491 @@
+{% extends "admin/adminbase.html" %}
+
+{% block title %}Admin Details - KapiyuGuide Admin{% endblock %}
+
+{% block content %}
+<div class="bg-white p-6 rounded-lg shadow-md mb-6">
+    <div class="flex justify-between items-center mb-6">
+        <div>
+            <h1 class="text-2xl font-bold text-blue-800">Office Admin Details</h1>
+            <p class="text-gray-600">View and manage office admin information</p>
+        </div>
+        <div>
+            <a href="{{ url_for('admin.office_stats') }}" class="text-blue-600 hover:text-blue-800">
+                <i class="fas fa-arrow-left mr-1"></i> Back to Office Statistics
+            </a>
+        </div>
+    </div>
+
+    {% if admin %}
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Admin Profile Card -->
+        <div class="col-span-1">
+            <div class="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+                <div class="flex flex-col items-center text-center mb-4">
+                    <div class="flex-shrink-0 h-24 w-24 rounded-full bg-blue-800 text-white flex items-center justify-center mb-4">
+                        {% if admin.user.profile_pic %}
+                        <img src="{{ admin.user.profile_pic }}" alt="Profile" class="h-24 w-24 rounded-full">
+                        {% else %}
+                        <div class="text-3xl font-bold">{{ admin.user.first_name[0] }}{{ admin.user.last_name[0] }}</div>
+                        {% endif %}
+                    </div>
+                    <h2 class="text-xl font-bold text-gray-900">{{ admin.user.get_full_name() }}</h2>
+                    <p class="text-gray-600">{{ admin.user.email }}</p>
+                    <div class="mt-2">
+                        <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full {% if admin.user.is_active %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                            {{ 'Active' if admin.user.is_active else 'Inactive' }}
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="border-t pt-4">
+                    <div class="flex justify-between mb-2">
+                        <span class="text-gray-500">Role:</span>
+                        <span class="font-medium text-gray-900">Office Admin</span>
+                    </div>
+                    <div class="flex justify-between mb-2">
+                        <span class="text-gray-500">Office:</span>
+                        <span class="font-medium text-gray-900">{{ admin.office.name }}</span>
+                    </div>
+                    <div class="flex justify-between mb-2">
+                        <span class="text-gray-500">Assigned Since:</span>
+                        <span class="font-medium text-gray-900">{{ admin.user.created_at.strftime('%Y-%m-%d') }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Last Login:</span>
+                        <span class="font-medium text-gray-900">
+                            {% if admin.user.last_activity %}
+                            {{ admin.user.last_activity.strftime('%Y-%m-%d %H:%M') }}
+                            {% else %}
+                            Never
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="mt-6 flex flex-col space-y-2">
+                    <a href="{{ url_for('admin.edit_office_admin', admin_id=admin.id) }}" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        <i class="fas fa-edit mr-2"></i> Edit Admin
+                    </a>
+                    {% if admin.user.is_active %}
+                    <button onclick="confirmDeactivate({{ admin.id }})" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
+                        <i class="fas fa-user-slash mr-2"></i> Deactivate Account
+                    </button>
+                    {% else %}
+                   
+                    {% endif %}
+                    <button onclick="confirmUnassign({{ admin.id }})" class="w-full flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        <i class="fas fa-user-minus mr-2"></i> Unassign from Office
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Admin Details and Statistics -->
+        <div class="col-span-1 lg:col-span-2">
+            <!-- Tabs -->
+            <div class="mb-6 border-b">
+                <ul class="flex flex-wrap -mb-px" id="myTab" role="tablist">
+                    <li class="mr-2" role="presentation">
+                        <button class="inline-block py-2 px-4 font-medium text-center text-blue-800 border-b-2 border-blue-800 active" 
+                                id="details-tab" 
+                                data-tabs-target="#details" 
+                                type="button" 
+                                role="tab" 
+                                aria-controls="details" 
+                                aria-selected="true">
+                            Account Details
+                        </button>
+                    </li>
+                    <li class="mr-2" role="presentation">
+                        <button class="inline-block py-2 px-4 font-medium text-center text-gray-500 border-b-2 border-transparent hover:text-blue-800 hover:border-blue-300" 
+                                id="inquiries-tab" 
+                                data-tabs-target="#inquiries" 
+                                type="button" 
+                                role="tab" 
+                                aria-controls="inquiries" 
+                                aria-selected="false">
+                            Activity
+                        </button>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- Tab Content -->
+            <div id="myTabContent">
+                <!-- Details Tab -->
+                <div class="active" id="details" role="tabpanel" aria-labelledby="details-tab">
+                    <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Personal Information</h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500 mb-1">First Name</label>
+                                <p class="text-gray-900">{{ admin.user.first_name }}</p>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500 mb-1">Last Name</label>
+                                <p class="text-gray-900">{{ admin.user.last_name }}</p>
+                            </div>
+                            
+                            {% if admin.user.middle_name %}
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500 mb-1">Middle Name</label>
+                                <p class="text-gray-900">{{ admin.user.middle_name }}</p>
+                            </div>
+                            {% endif %}
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500 mb-1">Email Address</label>
+                                <p class="text-gray-900">{{ admin.user.email }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Office Assignment</h3>
+                        
+                        <div class="grid grid-cols-1 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500 mb-1">Assigned Office</label>
+                                <p class="text-gray-900">{{ admin.office.name }}</p>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500 mb-1">Office Description</label>
+                                <p class="text-gray-900">{{ admin.office.description }}</p>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500 mb-1">Video Support</label>
+                                <p class="text-gray-900">{{ "Yes" if admin.office.supports_video else "No" }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Account Status</h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500 mb-1">Account Status</label>
+                                <p class="text-gray-900">{{ "Active" if admin.user.is_active else "Inactive" }}</p>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500 mb-1">Account Lock Status</label>
+                                <p class="text-gray-900">{{ "Locked" if admin.user.account_locked else "Not Locked" }}</p>
+                            </div>
+                            
+                            {% if admin.user.account_locked %}
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500 mb-1">Lock Reason</label>
+                                <p class="text-gray-900">{{ admin.user.lock_reason or "No reason provided" }}</p>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500 mb-1">Locked On</label>
+                                <p class="text-gray-900">{{ admin.user.locked_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500 mb-1">Locked By</label>
+                                <p class="text-gray-900">
+                                    {% if admin.user.locked_by %}
+                                    {{ admin.user.locked_by.get_full_name() }}
+                                    {% else %}
+                                    System
+                                    {% endif %}
+                                </p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Activity Tab -->
+                <div class="hidden" id="inquiries" role="tabpanel" aria-labelledby="inquiries-tab">
+                    <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Admin Activity Statistics</h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                            <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                                <div class="flex justify-between items-center mb-2">
+                                    <h3 class="font-semibold text-blue-800">Total Inquiries</h3>
+                                    <i class="fas fa-question-circle text-blue-500 text-lg"></i>
+                                </div>
+                                <p class="text-3xl font-bold text-blue-700">{{ admin.office.inquiries|length }}</p>
+                                <p class="text-sm text-blue-600">{{ admin.office.inquiries|selectattr('status', 'equalto', 'pending')|list|length }} pending</p>
+                            </div>
+                            
+                            <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+                                <div class="flex justify-between items-center mb-2">
+                                    <h3 class="font-semibold text-green-800">Announcements</h3>
+                                    <i class="fas fa-bullhorn text-green-500 text-lg"></i>
+                                </div>
+                                <p class="text-3xl font-bold text-green-700">{{ admin.user.announcements|length }}</p>
+                            </div>
+                            
+                            <div class="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                                <div class="flex justify-between items-center mb-2">
+                                    <h3 class="font-semibold text-purple-800">Counseling Sessions</h3>
+                                    <i class="fas fa-user-friends text-purple-500 text-lg"></i>
+                                </div>
+                                <p class="text-3xl font-bold text-purple-700">{{ admin.user.counseling_sessions|length }}</p>
+                            </div>
+                        </div>
+                        
+                        <h4 class="font-semibold text-gray-700 mb-2">Recent Activity</h4>
+                        
+                        {% if admin.user.inquiry_messages %}
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Activity Type
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Details
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Date
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    {% for message in admin.user.inquiry_messages[:5] %}
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex items-center">
+                                                <div class="flex-shrink-0 h-8 w-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
+                                                    <i class="fas fa-comment"></i>
+                                                </div>
+                                                <div class="ml-3">
+                                                    <div class="text-sm font-medium text-gray-900">Message</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <div class="text-sm text-gray-900">Response to Inquiry #{{ message.inquiry_id }}</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {{ message.created_at.strftime('%Y-%m-%d %H:%M') }}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                    
+                                    {% for announcement in admin.user.announcements[:3] %}
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex items-center">
+                                                <div class="flex-shrink-0 h-8 w-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center">
+                                                    <i class="fas fa-bullhorn"></i>
+                                                </div>
+                                                <div class="ml-3">
+                                                    <div class="text-sm font-medium text-gray-900">Announcement</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <div class="text-sm text-gray-900">{{ announcement.title }}</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {{ announcement.created_at.strftime('%Y-%m-%d %H:%M') }}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="text-center py-8">
+                            <div class="text-gray-400 mb-2">
+                                <i class="fas fa-inbox fa-3x"></i>
+                            </div>
+                            <p class="text-gray-500">No recent activity found for this admin.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="text-center py-8">
+        <div class="text-gray-400 mb-2">
+            <i class="fas fa-user-slash fa-3x"></i>
+        </div>
+        <h2 class="text-xl font-semibold text-gray-700 mb-1">Admin Not Found</h2>
+        <p class="text-gray-500">The requested admin could not be found.</p>
+        <div class="mt-4">
+            <a href="{{ url_for('admin.office_statistics') }}" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                Return to Office Statistics
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Confirmation Modal -->
+<div id="confirmationModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full" style="z-index: 100;">
+    <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <div class="flex justify-between items-center pb-3 border-b">
+                <h3 class="text-xl font-medium text-gray-900" id="confirmationTitle">Confirm Action</h3>
+                <button type="button" class="text-gray-400 hover:text-gray-500" onclick="closeModal('confirmationModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="mt-4">
+                <p class="text-gray-700" id="confirmationMessage">Are you sure you want to perform this action?</p>
+            </div>
+            <div class="mt-5 flex justify-end space-x-3">
+                <button type="button" onclick="closeModal('confirmationModal')" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">
+                    Cancel
+                </button>
+                <button type="button" id="confirmActionBtn" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
+                    Confirm
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Tab functionality
+        const tabs = document.querySelectorAll('[data-tabs-target]');
+        const tabContents = document.querySelectorAll('#myTabContent > div');
+        
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const target = document.querySelector(tab.dataset.tabsTarget);
+                
+                tabContents.forEach(tabContent => {
+                    tabContent.classList.add('hidden');
+                });
+                
+                tabs.forEach(t => {
+                    t.classList.remove('text-blue-800', 'border-blue-800');
+                    t.classList.add('text-gray-500', 'border-transparent');
+                    t.setAttribute('aria-selected', 'false');
+                });
+                
+                tab.classList.remove('text-gray-500', 'border-transparent');
+                tab.classList.add('text-blue-800', 'border-blue-800');
+                tab.setAttribute('aria-selected', 'true');
+                
+                target.classList.remove('hidden');
+            });
+        });
+        
+        const flashMessage = document.getElementById('flashMessage');
+        if (flashMessage) {
+            setTimeout(function() {
+                flashMessage.style.opacity = '0';
+                setTimeout(function() {
+                    flashMessage.style.display = 'none';
+                }, 500);
+            }, 5000);
+        }
+    });
+
+    // Modal handling functions
+    function openModal(modalId) {
+        document.getElementById(modalId).classList.remove('hidden');
+    }
+
+    function closeModal(modalId) {
+        document.getElementById(modalId).classList.add('hidden');
+    }
+
+    // Admin actions
+    function confirmDeactivate(adminId) {
+        document.getElementById('confirmationTitle').textContent = 'Deactivate Admin';
+        document.getElementById('confirmationMessage').textContent = 'Are you sure you want to deactivate this admin account? They will no longer be able to login.';
+        
+        document.getElementById('confirmActionBtn').classList.remove('bg-red-600', 'hover:bg-red-700');
+        document.getElementById('confirmActionBtn').classList.add('bg-yellow-600', 'hover:bg-yellow-700');
+        
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/admin/office_admin/${adminId}/deactivate/`;
+        
+        // Add CSRF token
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrf_token';
+        csrfInput.value = csrfToken;
+        form.appendChild(csrfInput);
+        
+        document.getElementById('confirmActionBtn').onclick = function() {
+            document.body.appendChild(form);
+            form.submit();
+            closeModal('confirmationModal');
+        };
+        
+        openModal('confirmationModal');
+    }
+
+    function confirmActivate(adminId) {
+        document.getElementById('confirmationTitle').textContent = 'Activate Admin';
+        document.getElementById('confirmationMessage').textContent = 'Are you sure you want to activate this admin account? They will be able to login.';
+        
+        document.getElementById('confirmActionBtn').classList.remove('bg-red-600', 'hover:bg-red-700');
+        document.getElementById('confirmActionBtn').classList.add('bg-green-600', 'hover:bg-green-700');
+        
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/admin/office_admin/${adminId}/activate/`;
+        
+        // Add CSRF token
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrf_token';
+        csrfInput.value = csrfToken;
+        form.appendChild(csrfInput);
+        
+        document.getElementById('confirmActionBtn').onclick = function() {
+            document.body.appendChild(form);
+            form.submit();
+            closeModal('confirmationModal');
+        };
+        
+        openModal('confirmationModal');
+    }
+
+    function confirmUnassign(adminId) {
+        document.getElementById('confirmationTitle').textContent = 'Unassign Admin';
+        document.getElementById('confirmationMessage').textContent = 'Are you sure you want to unassign this admin from their office?';
+        
+        document.getElementById('confirmActionBtn').classList.remove('bg-green-600', 'hover:bg-green-700', 'bg-yellow-600', 'hover:bg-yellow-700');
+        document.getElementById('confirmActionBtn').classList.add('bg-red-600', 'hover:bg-red-700');
+        
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/admin/office_admin/${adminId}/unassign/`;
+        
+        // Add CSRF token
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrf_token';
+        csrfInput.value = csrfToken;
+        form.appendChild(csrfInput);
+        
+        document.getElementById('confirmActionBtn').onclick = function() {
+            document.body.appendChild(form);
+            form.submit();
+            closeModal('confirmationModal');
+        };
+        
+        openModal('confirmationModal');
+    }
+</script>
+{% endblock %}
