@@ -1,0 +1,469 @@
+{% extends "office/office_base.html" %}
+
+{% block title %}Manage Student Inquiries - KapiyuGuide{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow-md p-6 mb-6">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-green-800">Student Inquiries Management</h1>
+        <div class="flex space-x-3">
+            <div class="relative">
+                <input type="text" id="searchInput" placeholder="Search inquiries..." class="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500">
+                <i class="fas fa-search absolute right-3 top-3 text-gray-400"></i>
+            </div>
+            <select id="statusFilter" class="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500">
+                <option value="all">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="in_progress">In Progress</option>
+                <option value="resolved">Resolved</option>
+                <option value="closed">Closed</option>
+            </select>
+            <select id="concernFilter" class="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500">
+                <option value="all">All Concerns</option>
+                {% for concern_type in concern_types %}
+                <option value="{{ concern_type.id }}">{{ concern_type.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <!-- Stats cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+            <div class="flex items-center">
+                <div class="rounded-full bg-blue-100 p-3 mr-4">
+                    <i class="fas fa-inbox text-blue-500"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm text-gray-500 uppercase">Total</h3>
+                    <p class="text-xl font-semibold">{{ stats.total }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+            <div class="flex items-center">
+                <div class="rounded-full bg-yellow-100 p-3 mr-4">
+                    <i class="fas fa-clock text-yellow-500"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm text-gray-500 uppercase">Pending</h3>
+                    <p class="text-xl font-semibold">{{ stats.pending }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+            <div class="flex items-center">
+                <div class="rounded-full bg-green-100 p-3 mr-4">
+                    <i class="fas fa-check-circle text-green-500"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm text-gray-500 uppercase">Resolved</h3>
+                    <p class="text-xl font-semibold">{{ stats.resolved }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+            <div class="flex items-center">
+                <div class="rounded-full bg-purple-100 p-3 mr-4">
+                    <i class="fas fa-sync text-purple-500"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm text-gray-500 uppercase">Response Rate</h3>
+                    <p class="text-xl font-semibold">{{ stats.response_rate }}%</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inquiry List Table -->
+    <div class="overflow-x-auto">
+        <table class="min-w-full bg-white">
+            <thead class="bg-gray-100">
+                <tr>
+                    <th class="py-3 px-4 text-left">ID</th>
+                    <th class="py-3 px-4 text-left">Subject</th>
+                    <th class="py-3 px-4 text-left">Student</th>
+                    <th class="py-3 px-4 text-left">Concerns</th>
+                    <th class="py-3 px-4 text-left">Date</th>
+                    <th class="py-3 px-4 text-left">Status</th>
+                    <th class="py-3 px-4 text-left">Action</th>
+                </tr>
+            </thead>
+            <tbody id="inquiryTable">
+                {% for inquiry in inquiries %}
+                <tr class="border-b hover:bg-gray-50">
+                    <td class="py-3 px-4">#{{ inquiry.id }}</td>
+                    <td class="py-3 px-4">
+                        <a href="{{ url_for('office.view_inquiry', inquiry_id=inquiry.id) }}" class="text-blue-600 hover:underline">{{ inquiry.subject }}</a>
+                        {% if inquiry.has_attachments() %}
+                        <i class="fas fa-paperclip text-gray-500 ml-1" title="Has attachments"></i>
+                        {% endif %}
+                    </td>
+                    <td class="py-3 px-4">
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center mr-2">
+                                {% if inquiry.student.user.profile_pic %}
+                                <img src="{{ url_for('static', filename=inquiry.student.user.profile_pic) }}" class="w-8 h-8 rounded-full">
+                                {% else %}
+                                <span class="text-gray-600">{{ inquiry.student.user.first_name[0] }}{{ inquiry.student.user.last_name[0] }}</span>
+                                {% endif %}
+                            </div>
+                            <span>{{ inquiry.student.user.get_full_name() }}</span>
+                        </div>
+                    </td>
+                    <td class="py-3 px-4">
+                        <div class="flex flex-wrap gap-1">
+                            {% for concern in inquiry.concerns %}
+                            <span class="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-gray-200 text-gray-800">
+                                {{ concern.concern_type.name }}
+                                {% if concern.other_specification %}
+                                <span class="text-gray-500">({{ concern.other_specification }})</span>
+                                {% endif %}
+                            </span>
+                            {% endfor %}
+                        </div>
+                    </td>
+                    <td class="py-3 px-4">{{ inquiry.created_at.strftime('%b %d, %Y') }}</td>
+                    <td class="py-3 px-4">
+                        <span class="px-2 py-1 text-xs rounded-full
+                            {% if inquiry.status == 'pending' %}bg-yellow-200 text-yellow-800
+                            {% elif inquiry.status == 'in_progress' %}bg-blue-200 text-blue-800
+                            {% elif inquiry.status == 'resolved' %}bg-green-200 text-green-800
+                            {% else %}bg-gray-200 text-gray-800{% endif %}">
+                            {{ inquiry.status.replace('_', ' ').title() }}
+                        </span>
+                    </td>
+                    <td class="py-3 px-4">
+                        <div class="flex space-x-2">
+                            <a href="{{ url_for('office.view_inquiry', inquiry_id=inquiry.id) }}" class="text-blue-600 hover:text-blue-800" title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="#" class="text-green-600 hover:text-green-800 updateStatusBtn" data-inquiry-id="{{ inquiry.id }}" title="Update Status">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="#" class="text-red-600 hover:text-red-800 deleteInquiryBtn" data-inquiry-id="{{ inquiry.id }}" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="py-6 text-center text-gray-500">No inquiries found</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="mt-6 flex justify-between items-center">
+        <div class="text-sm text-gray-500">
+            Showing <span class="font-medium">{{ inquiries|length }}</span> of <span class="font-medium">{{ total_inquiries }}</span> inquiries
+        </div>
+        <div class="flex space-x-1">
+            {% if pagination.has_prev %}
+            <a href="{{ url_for('office.office_inquiries', page=pagination.prev_num) }}" class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50">
+                <i class="fas fa-chevron-left"></i>
+            </a>
+            {% endif %}
+            
+            {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                {% if page_num %}
+                    {% if page_num == pagination.page %}
+                    <a href="{{ url_for('office.office_inquiries', page=page_num) }}" class="px-4 py-2 border border-green-500 bg-green-500 text-white rounded-md">
+                        {{ page_num }}
+                    </a>
+                    {% else %}
+                    <a href="{{ url_for('office.office_inquiries', page=page_num) }}" class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50">
+                        {{ page_num }}
+                    </a>
+                    {% endif %}
+                {% else %}
+                    <span class="px-4 py-2">…</span>
+                {% endif %}
+            {% endfor %}
+            
+            {% if pagination.has_next %}
+            <a href="{{ url_for('office.office_inquiries', page=pagination.next_num) }}" class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50">
+                <i class="fas fa-chevron-right"></i>
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Status Update Modal -->
+<div id="statusUpdateModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-bold text-gray-900">Update Inquiry Status</h3>
+            <button type="button" class="text-gray-400 hover:text-gray-500" id="closeStatusModal">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form id="updateStatusForm">
+            <input type="hidden" id="inquiryId" name="inquiry_id">
+            <div class="mb-4">
+                <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                <select id="status" name="status" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                    <option value="pending">Pending</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="resolved">Resolved</option>
+                    <option value="closed">Closed</option>
+                </select>
+            </div>
+            <div class="mb-4">
+                <label for="noteToStudent" class="block text-sm font-medium text-gray-700 mb-1">Add Note (Optional)</label>
+                <textarea id="noteToStudent" name="note" rows="3" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="Add an optional note to the student"></textarea>
+            </div>
+            <div class="flex justify-end space-x-3">
+                <button type="button" id="cancelStatusUpdate" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Cancel</button>
+                <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">Update Status</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteConfirmModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-bold text-gray-900">Confirm Deletion</h3>
+            <button type="button" class="text-gray-400 hover:text-gray-500" id="closeDeleteModal">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="mb-6">
+            <p class="text-gray-700">Are you sure you want to delete this inquiry? This action cannot be undone.</p>
+        </div>
+        <form id="deleteInquiryForm">
+            <input type="hidden" id="deleteInquiryId" name="inquiry_id">
+            <div class="flex justify-end space-x-3">
+                <button type="button" id="cancelDelete" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Cancel</button>
+                <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">Delete</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Status update modal functionality
+        const statusUpdateModal = document.getElementById('statusUpdateModal');
+        const updateStatusBtns = document.querySelectorAll('.updateStatusBtn');
+        const closeStatusModal = document.getElementById('closeStatusModal');
+        const cancelStatusUpdate = document.getElementById('cancelStatusUpdate');
+        const updateStatusForm = document.getElementById('updateStatusForm');
+        const inquiryIdInput = document.getElementById('inquiryId');
+        
+        // Delete confirmation modal functionality
+        const deleteConfirmModal = document.getElementById('deleteConfirmModal');
+        const deleteInquiryBtns = document.querySelectorAll('.deleteInquiryBtn');
+        const closeDeleteModal = document.getElementById('closeDeleteModal');
+        const cancelDelete = document.getElementById('cancelDelete');
+        const deleteInquiryForm = document.getElementById('deleteInquiryForm');
+        const deleteInquiryIdInput = document.getElementById('deleteInquiryId');
+        
+        // Search and filter functionality
+        const searchInput = document.getElementById('searchInput');
+        const statusFilter = document.getElementById('statusFilter');
+        const concernFilter = document.getElementById('concernFilter');
+        
+        // Open status update modal
+        updateStatusBtns.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const inquiryId = this.getAttribute('data-inquiry-id');
+                inquiryIdInput.value = inquiryId;
+                statusUpdateModal.classList.remove('hidden');
+            });
+        });
+        
+        // Close status update modal
+        closeStatusModal.addEventListener('click', function() {
+            statusUpdateModal.classList.add('hidden');
+        });
+        
+        cancelStatusUpdate.addEventListener('click', function() {
+            statusUpdateModal.classList.add('hidden');
+        });
+        
+        // Handle status update form submission
+        updateStatusForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            
+            fetch("{{ url_for('office.update_inquiry_status') }}", {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success message and reload page
+                    showFlashMessage('success', data.message);
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    showFlashMessage('error', data.message || 'Failed to update status');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showFlashMessage('error', 'An error occurred while updating the status');
+            })
+            .finally(() => {
+                statusUpdateModal.classList.add('hidden');
+            });
+        });
+        
+        // Open delete confirmation modal
+        deleteInquiryBtns.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const inquiryId = this.getAttribute('data-inquiry-id');
+                deleteInquiryIdInput.value = inquiryId;
+                deleteConfirmModal.classList.remove('hidden');
+            });
+        });
+        
+        // Close delete confirmation modal
+        closeDeleteModal.addEventListener('click', function() {
+            deleteConfirmModal.classList.add('hidden');
+        });
+        
+        cancelDelete.addEventListener('click', function() {
+            deleteConfirmModal.classList.add('hidden');
+        });
+        
+        // Handle delete form submission
+        deleteInquiryForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const inquiryId = deleteInquiryIdInput.value;
+            
+            fetch(`{{ url_for('office.delete_inquiry', inquiry_id=0) }}`.replace('0', inquiryId), {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success message and reload page
+                    showFlashMessage('success', data.message);
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    showFlashMessage('error', data.message || 'Failed to delete inquiry');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showFlashMessage('error', 'An error occurred while deleting the inquiry');
+            })
+            .finally(() => {
+                deleteConfirmModal.classList.add('hidden');
+            });
+        });
+        
+        // Search and filter functionality
+        function applyFilters() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const statusValue = statusFilter.value;
+            const concernValue = concernFilter.value;
+            
+            const rows = document.querySelectorAll('#inquiryTable tr:not(:first-child)');
+            
+            rows.forEach(row => {
+                const subjectCol = row.querySelector('td:nth-child(2)');
+                const studentCol = row.querySelector('td:nth-child(3)');
+                const concernsCol = row.querySelector('td:nth-child(4)');
+                const statusCol = row.querySelector('td:nth-child(6)');
+                
+                if (!subjectCol || !studentCol || !concernsCol || !statusCol) return;
+                
+                const subject = subjectCol.textContent.toLowerCase();
+                const student = studentCol.textContent.toLowerCase();
+                const concerns = concernsCol.textContent.toLowerCase();
+                const status = statusCol.textContent.toLowerCase();
+                
+                const matchesSearch = subject.includes(searchTerm) || 
+                                     student.includes(searchTerm) || 
+                                     concerns.includes(searchTerm);
+                
+                const matchesStatus = statusValue === 'all' || status.includes(statusValue.replace('_', ' '));
+                
+                const matchesConcern = concernValue === 'all' || 
+                                     concernsCol.querySelector(`[data-concern-id="${concernValue}"]`) !== null;
+                
+                if (matchesSearch && matchesStatus && matchesConcern) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+        
+        searchInput.addEventListener('input', applyFilters);
+        statusFilter.addEventListener('change', applyFilters);
+        concernFilter.addEventListener('change', applyFilters);
+        
+        // Helper function to show flash messages
+        function showFlashMessage(type, message) {
+            const flashContainer = document.querySelector('.flash-messages');
+            if (!flashContainer) return;
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `flash-message relative border-l-4 p-4 mb-3 rounded shadow-md w-full mx-auto ${
+                type === 'success' ? 'border-green-500 bg-green-200 text-green-700' :
+                type === 'error' ? 'border-red-500 bg-red-200 text-red-700' :
+                type === 'warning' ? 'border-yellow-500 bg-yellow-200 text-yellow-700' :
+                'border-blue-500 bg-blue-50 text-blue-700'
+            }`;
+            
+            const icon = type === 'success' ? 'fa-check-circle' :
+                        type === 'error' ? 'fa-exclamation-circle' :
+                        type === 'warning' ? 'fa-exclamation-triangle' :
+                        'fa-info-circle';
+            
+            messageDiv.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas ${icon} mr-2"></i>
+                    <span>${message}</span>
+                </div>
+                <button class="close-flash absolute top-4 right-4 text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            
+            flashContainer.appendChild(messageDiv);
+            
+            // Add event listener to close button
+            const closeBtn = messageDiv.querySelector('.close-flash');
+            closeBtn.addEventListener('click', function() {
+                messageDiv.style.opacity = '0';
+                setTimeout(() => {
+                    messageDiv.remove();
+                }, 500);
+            });
+            
+            // Auto-dismiss after 5 seconds
+            setTimeout(() => {
+                messageDiv.style.opacity = '0';
+                setTimeout(() => {
+                    messageDiv.remove();
+                }, 500);
+            }, 5000);
+        }
+    });
+</script>
+{% endblock %}

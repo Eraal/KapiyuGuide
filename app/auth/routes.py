@@ -8,9 +8,7 @@ from app.extensions import db
 from flask_wtf.csrf import CSRFProtect
 
 
-
 auth_bp = Blueprint('auth', __name__, template_folder='../templates') 
-
 
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
@@ -22,6 +20,10 @@ def login():
         user = User.query.filter_by(email=email).first()
         
         if user and check_password_hash(user.password_hash, password):
+            # Update online status and last activity time
+            user.is_online = True
+            user.last_activity = datetime.utcnow()
+            
             # Successful login
             login_user(user)
             flash('Login successful!', 'success')
@@ -129,6 +131,8 @@ def register():
 @auth_bp.route('/logout')
 @login_required 
 def logout():
+    # Update online status before logging out
+    current_user.is_online = False
     
     log = AuditLog(
         actor_id=current_user.id,

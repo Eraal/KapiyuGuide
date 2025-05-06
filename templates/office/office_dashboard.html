@@ -1,0 +1,406 @@
+{% extends "office/office_base.html" %}
+
+{% block title %}Office Dashboard - KapiyuGuide{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4">
+    <!-- Dashboard Header -->
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">Office Dashboard</h1>
+        <div class="text-sm text-gray-500">
+            Last updated: <span id="last-updated">{{ now.strftime('%B %d, %Y %H:%M') }}</span>
+        </div>
+    </div>
+
+    <!-- Stats Overview -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <!-- Pending Inquiries Card -->
+        <div class="bg-white rounded-lg shadow p-4 border-l-4 border-orange-500">
+            <div class="flex justify-between items-center">
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Pending Inquiries</p>
+                    <p class="text-2xl font-bold text-gray-800 pending-inquiries">{{ stats.pending_inquiries }}</p>
+                </div>
+                <div class="bg-orange-100 p-3 rounded-full">
+                    <i class="fas fa-question-circle text-orange-500 text-xl"></i>
+                </div>
+            </div>
+            <div class="mt-2 text-xs text-gray-500">
+                <span class="{% if stats.pending_inquiries_change > 0 %}text-red-500{% else %}text-green-500{% endif %}">
+                    <i class="fas fa-{% if stats.pending_inquiries_change > 0 %}arrow-up{% else %}arrow-down{% endif %} mr-1"></i>
+                    {{ stats.pending_inquiries_change|abs }}%
+                </span>
+                from last week
+            </div>
+        </div>
+
+        <!-- Upcoming Sessions Card -->
+        <div class="bg-white rounded-lg shadow p-4 border-l-4 border-blue-500">
+            <div class="flex justify-between items-center">
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Upcoming Sessions</p>
+                    <p class="text-2xl font-bold text-gray-800 upcoming-sessions">{{ stats.upcoming_sessions }}</p>
+                </div>
+                <div class="bg-blue-100 p-3 rounded-full">
+                    <i class="fas fa-calendar-alt text-blue-500 text-xl"></i>
+                </div>
+            </div>
+            <div class="mt-2 text-xs text-gray-500">
+                Next session in 
+                <span class="font-medium">{{ stats.next_session_time }}</span>
+            </div>
+        </div>
+
+        <!-- Students Served Card -->
+        <div class="bg-white rounded-lg shadow p-4 border-l-4 border-green-500">
+            <div class="flex justify-between items-center">
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Students Served</p>
+                    <p class="text-2xl font-bold text-gray-800 students-served">{{ stats.students_served_month }}</p>
+                </div>
+                <div class="bg-green-100 p-3 rounded-full">
+                    <i class="fas fa-user-graduate text-green-500 text-xl"></i>
+                </div>
+            </div>
+            <div class="mt-2 text-xs text-gray-500">
+                <span class="{% if stats.students_served_change > 0 %}text-green-500{% else %}text-red-500{% endif %}">
+                    <i class="fas fa-{% if stats.students_served_change > 0 %}arrow-up{% else %}arrow-down{% endif %} mr-1"></i>
+                    {{ stats.students_served_change|abs }}%
+                </span>
+                from last month
+            </div>
+        </div>
+
+        <!-- Staff Online Card -->
+        <div class="bg-white rounded-lg shadow p-4 border-l-4 border-purple-500">
+            <div class="flex justify-between items-center">
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Staff Online</p>
+                    <p class="text-2xl font-bold text-gray-800">
+                        <span class="staff-online">{{ stats.staff_online }}</span> / {{ stats.total_staff }}
+                    </p>
+                </div>
+                <div class="bg-purple-100 p-3 rounded-full">
+                    <i class="fas fa-users text-purple-500 text-xl"></i>
+                </div>
+            </div>
+            <div class="mt-2 text-xs text-gray-500">
+                <a href="{{ url_for('office.dashboard_data') }}" class="text-purple-500 hover:underline">
+                    <i class="fas fa-external-link-alt mr-1"></i>
+                    View staff details
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Dashboard Content -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Recent Inquiries Section -->
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-lg shadow mb-6">
+                <div class="border-b px-6 py-3 flex justify-between items-center">
+                    <h2 class="text-lg font-semibold text-gray-800">Recent Inquiries</h2>
+                    <a href="{{ url_for('office.office_inquiries') }}" class="text-sm text-green-600 hover:underline">
+                        View All
+                    </a>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subject</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            {% for inquiry in recent_inquiries %}
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
+                                            <span class="text-sm font-medium text-gray-700">{{ inquiry.student.user.first_name[0] }}{{ inquiry.student.user.last_name[0] }}</span>
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="text-sm font-medium text-gray-900">{{ inquiry.student.user.get_full_name() }}</div>
+                                            <div class="text-xs text-gray-500">{{ inquiry.student.student_number }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900 truncate max-w-xs">{{ inquiry.subject }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                        {% if inquiry.status == 'pending' %}bg-yellow-100 text-yellow-800
+                                        {% elif inquiry.status == 'in_progress' %}bg-blue-100 text-blue-800
+                                        {% elif inquiry.status == 'resolved' %}bg-green-100 text-green-800
+                                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                        {{ inquiry.status|replace('_', ' ')|title }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ inquiry.created_at.strftime('%b %d, %H:%M') }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <a href="{{ url_for('office.view_inquiry', inquiry_id=inquiry.id) }}" class="text-green-600 hover:text-green-900">
+                                        <i class="fas fa-eye mr-1"></i> View
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            {% if not recent_inquiries %}
+                            <tr>
+                                <td colspan="5" class="px-6 py-4 text-center text-gray-500">
+                                    No recent inquiries found
+                                </td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Activity Chart -->
+            <div class="bg-white rounded-lg shadow">
+                <div class="border-b px-6 py-3">
+                    <h2 class="text-lg font-semibold text-gray-800">Activity Trends</h2>
+                </div>
+                <div class="p-6">
+                    <canvas id="activityChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Sidebar Content -->
+        <div class="space-y-6">
+            <!-- Upcoming Sessions -->
+            <div class="bg-white rounded-lg shadow">
+                <div class="border-b px-6 py-3 flex justify-between items-center">
+                    <h2 class="text-lg font-semibold text-gray-800">Today's Sessions</h2>
+                    <a href="{{ url_for('office.office_counseling') }}" class="text-sm text-green-600 hover:underline">
+                        View All
+                    </a>
+                </div>
+                <div class="p-4">
+                    {% for session in todays_sessions %}
+                    <div class="mb-4 last:mb-0 p-3 border rounded-lg {% if session.status == 'pending' %}border-yellow-200 bg-yellow-50{% elif session.status == 'in_progress' %}border-blue-200 bg-blue-50{% else %}border-gray-200{% endif %}">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="font-medium text-gray-800">{{ session.student.user.get_full_name() }}</p>
+                                <p class="text-xs text-gray-500">{{ session.scheduled_at.strftime('%H:%M') }}</p>
+                            </div>
+                            <span class="px-2 py-1 text-xs rounded-full 
+                                {% if session.status == 'pending' %}bg-yellow-100 text-yellow-800
+                                {% elif session.status == 'in_progress' %}bg-blue-100 text-blue-800
+                                {% elif session.status == 'completed' %}bg-green-100 text-green-800
+                                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                {{ session.status|replace('_', ' ')|title }}
+                            </span>
+                        </div>
+                        <div class="mt-2 flex justify-between">
+                            <span class="text-xs text-gray-500">
+                                <i class="fas fa-user-circle mr-1"></i>
+                                Counselor: {{ session.counselor.first_name }}
+                            </span>
+                            <a href="{{ url_for('office.view_appointment', session_id=session.id) }}" class="text-xs text-green-600 hover:underline">
+                                <i class="fas fa-eye mr-1"></i> View
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% if not todays_sessions %}
+                    <div class="text-center py-4 text-gray-500">
+                        No sessions scheduled for today
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Staff Online Status -->
+            <div class="bg-white rounded-lg shadow">
+                <div class="border-b px-6 py-3">
+                    <h2 class="text-lg font-semibold text-gray-800">Staff Status</h2>
+                </div>
+                <div class="p-4">
+                    {% for staff in online_staff %}
+                    <div class="flex items-center justify-between mb-3 last:mb-0">
+                        <div class="flex items-center">
+                            <div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center mr-3">
+                                <span class="text-sm font-medium text-gray-700">{{ staff.first_name[0] }}{{ staff.last_name[0] }}</span>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-800">{{ staff.first_name }} {{ staff.last_name }}</p>
+                                <p class="text-xs text-gray-500">
+                                    Last active: {{ staff.last_activity.strftime('%H:%M') if staff.last_activity else 'N/A' }}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="inline-block h-3 w-3 rounded-full mr-1 
+                                {% if staff.is_online %}bg-green-500{% else %}bg-gray-400{% endif %}"></span>
+                            <span class="text-xs text-gray-500">
+                                {{ 'Online' if staff.is_online else 'Offline' }}
+                            </span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% if not online_staff %}
+                    <div class="text-center py-4 text-gray-500">
+                        No staff members online
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Recent Announcements -->
+            <div class="bg-white rounded-lg shadow">
+                <div class="border-b px-6 py-3 flex justify-between items-center">
+                    <h2 class="text-lg font-semibold text-gray-800">Recent Announcements</h2>
+                    <a href="{{ url_for('office.office_announcements') }}" class="text-sm text-green-600 hover:underline">
+                        View All
+                    </a>
+                </div>
+                <div class="p-4">
+                    {% for announcement in recent_announcements %}
+                    <div class="mb-4 last:mb-0 border-b pb-3 last:border-b-0">
+                        <h3 class="font-medium text-gray-800">{{ announcement.title }}</h3>
+                        <p class="text-sm text-gray-600 mt-1 line-clamp-2">{{ announcement.content|truncate(100) }}</p>
+                        <div class="flex justify-between mt-2 text-xs text-gray-500">
+                            <span>
+                                <i class="fas fa-user mr-1"></i>
+                                {{ announcement.author.first_name }} {{ announcement.author.last_name }}
+                            </span>
+                            <span>
+                                <i class="fas fa-clock mr-1"></i>
+                                {{ announcement.created_at.strftime('%b %d, %H:%M') }}
+                            </span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% if not recent_announcements %}
+                    <div class="text-center py-4 text-gray-500">
+                        No recent announcements
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Activity Chart
+    const ctx = document.getElementById('activityChart').getContext('2d');
+    const activityChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: {{ chart_data.labels|tojson }},
+            datasets: [
+                {
+                    label: 'Inquiries',
+                    data: {{ chart_data.inquiries|tojson }},
+                    borderColor: 'rgb(249, 115, 22)',
+                    backgroundColor: 'rgba(249, 115, 22, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                },
+                {
+                    label: 'Counseling Sessions',
+                    data: {{ chart_data.sessions|tojson }},
+                    borderColor: 'rgb(59, 130, 246)',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0
+                    }
+                }
+            }
+        }
+    });
+
+    // Auto-refresh dashboard data every 2 minutes
+    function updateLastUpdated() {
+        const now = new Date();
+        const options = { 
+            month: 'long', 
+            day: 'numeric', 
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        };
+        document.getElementById('last-updated').textContent = now.toLocaleDateString('en-US', options);
+    }
+
+    // Set up auto-refresh timer
+    setInterval(function() {
+        fetch('{{ url_for("office.dashboard_data") }}')
+            .then(response => response.json())
+            .then(data => {
+                // Update stats
+                updateDataWithAnimation('.pending-inquiries', data.stats.pending_inquiries);
+                updateDataWithAnimation('.upcoming-sessions', data.stats.upcoming_sessions);
+                updateDataWithAnimation('.students-served', data.stats.students_served_month);
+                updateDataWithAnimation('.staff-online', data.stats.staff_online);
+                
+                // Update chart data
+                activityChart.data.datasets[0].data = data.chart_data.inquiries;
+                activityChart.data.datasets[1].data = data.chart_data.sessions;
+                activityChart.update();
+                
+                updateLastUpdated();
+            })
+            .catch(error => console.error('Error updating dashboard data:', error));
+    }, 120000); // 2 minutes
+
+    function updateDataWithAnimation(selector, newValue) {
+        const element = document.querySelector(selector);
+        if(!element) return;
+        
+        const currentValue = parseInt(element.textContent);
+        const diff = newValue - currentValue;
+        
+        if(diff === 0) return;
+        
+        let step = 0;
+        const totalSteps = 20;
+        const increment = diff / totalSteps;
+        
+        const animationInterval = setInterval(() => {
+            step++;
+            const value = Math.round(currentValue + (increment * step));
+            element.textContent = value;
+            
+            if(step >= totalSteps) {
+                element.textContent = newValue;
+                clearInterval(animationInterval);
+            }
+        }, 50);
+    }
+});
+</script>
+{% endblock %}
